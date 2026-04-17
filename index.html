@@ -69,9 +69,10 @@ html, body { width: 100%; min-height: 100vh; background: var(--bg); color: var(-
 @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.8)} }
 .live-text { color: var(--text-dim); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; font-family: var(--font-ui); }
 .live-text strong { color: var(--ice); font-weight: 600; }
-.logo-wrap { position: absolute; left: 50%; transform: translateX(-50%); top: 0; z-index: 10; cursor: pointer; text-decoration: none; display: block; }
-.hex-base-svg { display: block; width: 88px; height: 94px; filter: drop-shadow(0 6px 20px rgba(77,200,232,0.2)); }
-.hex-logo-svg { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 60px; height: 60px; }
+.logo-wrap { position: absolute; left: 50%; transform: translateX(-50%); top: 0; z-index: 10; cursor: pointer; text-decoration: none; display: flex; align-items: flex-start; justify-content: center; }
+.logo-wrap:hover .logo-img { filter: drop-shadow(0 0 12px rgba(77,200,232,0.6)) brightness(1.08); }
+.hex-base-bg { display: block; width: 88px; height: 94px; }
+.logo-img { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 68px; height: 68px; object-fit: contain; filter: drop-shadow(0 4px 16px rgba(77,200,232,0.25)); transition: filter 0.25s; }
 .topbar-right { display: flex; align-items: center; gap: 14px; flex: 1; justify-content: flex-end; }
 .status-chip { display: flex; align-items: center; gap: 6px; background: rgba(10,22,40,0.8); border: 1px solid var(--border); border-radius: 20px; padding: 5px 14px 5px 10px; }
 .green-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s ease-in-out infinite; }
@@ -231,18 +232,12 @@ html, body { width: 100%; min-height: 100vh; background: var(--bg); color: var(-
         <div class="live-text" id="ticker-text"><strong>Real Madrid</strong> vs Arsenal &nbsp;·&nbsp; 21:00</div>
       </div>
     </div>
-    <a class="logo-wrap" href="https://ice.bet/sports" target="_blank">
-      <svg class="hex-base-svg" viewBox="0 0 88 94" fill="none">
+    <a class="logo-wrap" href="https://ice.bet.br/sports/" target="_blank" title="ICE.BET Esportes">
+      <svg class="hex-base-bg" viewBox="0 0 88 94" fill="none">
         <polygon points="44,4 82,26 82,70 44,92 6,70 6,26" fill="#0d1e35" stroke="#4dc8e8" stroke-width="1" stroke-opacity="0.5"/>
         <polygon points="44,8 78,28 78,68 44,88 10,68 10,28" fill="#0a1628"/>
       </svg>
-      <svg class="hex-logo-svg" viewBox="0 0 60 60" fill="none">
-        <polygon points="30,4 54,17 54,43 30,56 6,43 6,17" fill="#4dc8e8"/>
-        <ellipse cx="21" cy="30" rx="6.5" ry="8" fill="#06101c"/>
-        <ellipse cx="39" cy="30" rx="6.5" ry="8" fill="#06101c"/>
-        <ellipse cx="21" cy="29" rx="3.8" ry="5" fill="white"/>
-        <ellipse cx="39" cy="29" rx="3.8" ry="5" fill="white"/>
-      </svg>
+      <img class="logo-img" src="logos/icebet-logo.png" alt="ICE.BET"/>
     </a>
     <div class="topbar-right">
       <div class="status-chip"><div class="green-dot"></div><span class="status-text">10 jogos ao vivo</span></div>
