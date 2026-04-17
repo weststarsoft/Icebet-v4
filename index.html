@@ -25,871 +25,186 @@
   --font-ui: 'Rajdhani', sans-serif;
   --font-body: 'Inter', sans-serif;
 }
-
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; min-height: 100vh; background: var(--bg); color: var(--text); font-family: var(--font-ui); overflow-x: hidden; }
 
-html, body {
-  width: 100%; min-height: 100vh;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-ui);
-  overflow-x: hidden;
-}
-
-/* ═══════════════════════════════════════════
-   PORTAL ANIMATION
-═══════════════════════════════════════════ */
-#portal {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg);
-  pointer-events: all;
-}
-
-#portal.done {
-  pointer-events: none;
-  animation: portalFade 0.5s 0.2s ease forwards;
-}
-
-@keyframes portalFade {
-  to { opacity: 0; }
-}
-
-.portal-halves {
-  position: relative;
-  width: 220px;
-  height: 220px;
-}
-
-.portal-half {
-  position: absolute;
-  top: 0; width: 110px; height: 220px;
-  overflow: hidden;
-}
+/* PORTAL */
+#portal { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: var(--bg); }
+#portal.done { pointer-events: none; animation: portalFade 0.5s 0.2s ease forwards; }
+@keyframes portalFade { to { opacity: 0; } }
+.portal-halves { position: relative; width: 220px; height: 220px; }
+.portal-half { position: absolute; top: 0; width: 110px; height: 220px; overflow: hidden; }
 .portal-half.left { left: 0; }
 .portal-half.right { right: 0; }
-
-.portal-half svg {
-  position: absolute;
-  top: 0;
-  width: 220px;
-  height: 220px;
-}
+.portal-half svg { position: absolute; top: 0; width: 220px; height: 220px; }
 .portal-half.left svg { left: 0; }
 .portal-half.right svg { left: -110px; }
-
 .portal-half.left.open { animation: slideLeft 0.7s 1.2s cubic-bezier(0.76,0,0.24,1) forwards; }
 .portal-half.right.open { animation: slideRight 0.7s 1.2s cubic-bezier(0.76,0,0.24,1) forwards; }
-
 @keyframes slideLeft { to { transform: translateX(-140%); } }
 @keyframes slideRight { to { transform: translateX(140%); } }
-
-.portal-glow {
-  position: absolute;
-  inset: -20px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(77,200,232,0.2) 0%, transparent 70%);
-  animation: glowPulse 1s ease-in-out infinite;
-}
+.portal-glow { position: absolute; inset: -20px; border-radius: 50%; background: radial-gradient(circle, rgba(77,200,232,0.2) 0%, transparent 70%); animation: glowPulse 1s ease-in-out infinite; }
 @keyframes glowPulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
-
-.portal-scan {
-  position: absolute;
-  bottom: -40px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: var(--ice);
-  font-family: var(--font-display);
-  font-size: 9px;
-  letter-spacing: 4px;
-  text-transform: uppercase;
-  opacity: 0;
-  animation: scanIn 0.5s 0.3s ease forwards;
-  white-space: nowrap;
-}
+.portal-scan { position: absolute; bottom: -40px; left: 50%; transform: translateX(-50%); color: var(--ice); font-family: var(--font-display); font-size: 9px; letter-spacing: 4px; text-transform: uppercase; opacity: 0; animation: scanIn 0.5s 0.3s ease forwards; white-space: nowrap; }
 @keyframes scanIn { to { opacity: 0.7; } }
 
-/* ═══════════════════════════════════════════
-   MAIN LAYOUT
-═══════════════════════════════════════════ */
-#app {
-  opacity: 0;
-  animation: appReveal 0.8s 2s ease forwards;
-  min-height: 100vh;
-}
+/* APP */
+#app { opacity: 0; animation: appReveal 0.8s 2s ease forwards; min-height: 100vh; }
 @keyframes appReveal { to { opacity: 1; } }
+#app::before { content: ''; position: fixed; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(77,200,232,0.012) 3px, rgba(77,200,232,0.012) 4px); pointer-events: none; z-index: 1000; }
 
-/* scan lines overlay */
-#app::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(77,200,232,0.012) 3px, rgba(77,200,232,0.012) 4px);
-  pointer-events: none;
-  z-index: 1000;
-}
-
-/* ═══════════════════════════════════════════
-   TOPBAR
-═══════════════════════════════════════════ */
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  height: 64px;
-  background: linear-gradient(90deg, #0a1628 0%, #0f2540 50%, #0a1628 100%);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 32px;
-}
-.topbar::after {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent 0%, var(--ice) 50%, transparent 100%);
-  opacity: 0.5;
-}
-
-.topbar-left {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  flex: 1;
-}
-
-.hamburger {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 6px;
-  transition: background 0.2s;
-}
+/* TOPBAR */
+.topbar { position: sticky; top: 0; z-index: 100; height: 64px; background: linear-gradient(90deg, #0a1628 0%, #0f2540 50%, #0a1628 100%); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; }
+.topbar::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent 0%, var(--ice) 50%, transparent 100%); opacity: 0.5; }
+.topbar-left { display: flex; align-items: center; gap: 20px; flex: 1; }
+.hamburger { display: flex; flex-direction: column; gap: 5px; cursor: pointer; padding: 6px; border-radius: 6px; transition: background 0.2s; }
 .hamburger:hover { background: rgba(77,200,232,0.08); }
-.hamburger span {
-  display: block;
-  height: 1.5px;
-  background: var(--ice);
-  border-radius: 2px;
-  transition: all 0.3s;
-}
+.hamburger span { display: block; height: 1.5px; background: var(--ice); border-radius: 2px; transition: width 0.2s; }
 .hamburger span:nth-child(1) { width: 22px; }
 .hamburger span:nth-child(2) { width: 14px; }
 .hamburger span:nth-child(3) { width: 22px; }
 .hamburger:hover span:nth-child(2) { width: 22px; }
-
-.live-ticker {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(10,22,40,0.8);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 5px 14px 5px 10px;
-}
-.live-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--ice);
-  animation: pulse 1.5s ease-in-out infinite;
-}
+.live-ticker { display: flex; align-items: center; gap: 8px; background: rgba(10,22,40,0.8); border: 1px solid var(--border); border-radius: 20px; padding: 5px 14px 5px 10px; }
+.live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ice); animation: pulse 1.5s ease-in-out infinite; }
 @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.8)} }
-.live-text {
-  color: var(--text-dim);
-  font-size: 10px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  font-family: var(--font-ui);
-}
+.live-text { color: var(--text-dim); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; font-family: var(--font-ui); }
 .live-text strong { color: var(--ice); font-weight: 600; }
-
-/* LOGO CENTER */
-.logo-wrap {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  top: 0;
-  z-index: 10;
-  cursor: pointer;
-  text-decoration: none;
-}
-.logo-wrap:hover .hex-logo-svg polygon:first-child { opacity: 0.85; }
-
-.hex-base-svg {
-  display: block;
-  width: 88px;
-  height: 94px;
-  filter: drop-shadow(0 6px 20px rgba(77,200,232,0.2));
-}
-
-.hex-logo-svg {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60px;
-  height: 60px;
-}
-
-/* TOPBAR RIGHT */
-.topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex: 1;
-  justify-content: flex-end;
-}
-
-.status-chip {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(10,22,40,0.8);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 5px 14px 5px 10px;
-}
-.green-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--green);
-  animation: pulse 2s ease-in-out infinite;
-}
-.status-text {
-  color: var(--text-dim);
-  font-size: 10px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-}
-
-.icon-btn {
-  width: 34px; height: 34px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: rgba(10,22,40,0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
-}
+.logo-wrap { position: absolute; left: 50%; transform: translateX(-50%); top: 0; z-index: 10; cursor: pointer; text-decoration: none; display: block; }
+.hex-base-svg { display: block; width: 88px; height: 94px; filter: drop-shadow(0 6px 20px rgba(77,200,232,0.2)); }
+.hex-logo-svg { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 60px; height: 60px; }
+.topbar-right { display: flex; align-items: center; gap: 14px; flex: 1; justify-content: flex-end; }
+.status-chip { display: flex; align-items: center; gap: 6px; background: rgba(10,22,40,0.8); border: 1px solid var(--border); border-radius: 20px; padding: 5px 14px 5px 10px; }
+.green-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s ease-in-out infinite; }
+.status-text { color: var(--text-dim); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; }
+.icon-btn { width: 34px; height: 34px; border: 1px solid var(--border); border-radius: 8px; background: rgba(10,22,40,0.8); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
 .icon-btn:hover { border-color: var(--border-ice); background: var(--ice-glow); }
-.icon-btn svg { width: 15px; height: 15px; }
 
-/* ═══════════════════════════════════════════
-   PAGE BODY
-═══════════════════════════════════════════ */
-.page {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 40px 32px 60px;
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
-}
+/* PAGE */
+.page { max-width: 1100px; margin: 0 auto; padding: 40px 32px 60px; display: flex; flex-direction: column; gap: 40px; }
+.section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.section-label { color: var(--ice); font-family: var(--font-display); font-size: 9px; letter-spacing: 4px; text-transform: uppercase; white-space: nowrap; }
+.section-line { flex: 1; height: 1px; background: linear-gradient(90deg, var(--border) 0%, transparent 100%); }
 
-/* SECTION HEADER */
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-.section-label {
-  color: var(--ice);
-  font-family: var(--font-display);
-  font-size: 9px;
-  letter-spacing: 4px;
-  text-transform: uppercase;
-}
-.section-line {
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, var(--border) 0%, transparent 100%);
-}
-
-/* ═══════════════════════════════════════════
-   GAMES PANEL
-═══════════════════════════════════════════ */
-.games-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
-}
-
-.game-card {
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  cursor: pointer;
-  transition: border-color 0.2s, background 0.2s, transform 0.15s;
-  position: relative;
-  overflow: hidden;
-}
-.game-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--border);
-  transition: background 0.2s;
-}
-.game-card:hover {
-  border-color: var(--border-ice);
-  background: var(--bg4);
-  transform: translateY(-2px);
-}
+/* GAMES */
+.games-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.game-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px; position: relative; overflow: hidden; transition: border-color 0.2s, background 0.2s, transform 0.15s; }
+.game-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--border); transition: background 0.2s; }
+.game-card:hover { border-color: var(--border-ice); background: var(--bg4); transform: translateY(-2px); }
 .game-card:hover::before { background: var(--ice); }
 .game-card.featured { border-color: rgba(77,200,232,0.4); }
 .game-card.featured::before { background: var(--ice); }
-
-.game-comp {
-  background: rgba(77,200,232,0.08);
-  color: var(--ice-dim);
-  font-size: 8px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  padding: 3px 8px;
-  border-radius: 4px;
-  width: fit-content;
-  font-family: var(--font-display);
-}
-.game-card.featured .game-comp {
-  background: rgba(77,200,232,0.15);
-  color: var(--ice);
-}
-
-.game-teams {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.team-name {
-  color: var(--text);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.vs-small {
-  color: var(--text-muted);
-  font-size: 9px;
-  letter-spacing: 2px;
-  font-family: var(--font-display);
-}
-
-.game-time {
-  color: var(--text-dim);
-  font-size: 10px;
-  letter-spacing: 1px;
-  font-family: var(--font-body);
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
+.game-comp { background: rgba(77,200,232,0.08); color: var(--ice-dim); font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; width: fit-content; font-family: var(--font-display); }
+.game-card.featured .game-comp { background: rgba(77,200,232,0.15); color: var(--ice); }
+.game-teams { display: flex; flex-direction: column; gap: 4px; }
+.team-name { color: var(--text); font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vs-small { color: var(--text-muted); font-size: 9px; letter-spacing: 2px; font-family: var(--font-display); }
+.game-time { color: var(--text-dim); font-size: 10px; font-family: var(--font-body); }
 .game-time-val { color: var(--ice); font-weight: 500; }
+.use-btn { background: rgba(77,200,232,0.1); border: 1px solid rgba(77,200,232,0.2); border-radius: 6px; color: var(--ice); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; padding: 5px 0; text-align: center; font-family: var(--font-display); cursor: pointer; transition: background 0.2s; width: 100%; }
+.use-btn:hover { background: rgba(77,200,232,0.22); }
 
-.use-btn {
-  background: rgba(77,200,232,0.1);
-  border: 1px solid rgba(77,200,232,0.2);
-  border-radius: 6px;
-  color: var(--ice);
-  font-size: 9px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  padding: 5px 0;
-  text-align: center;
-  font-family: var(--font-display);
-  cursor: pointer;
-  transition: background 0.2s;
-  width: 100%;
-}
-.use-btn:hover { background: rgba(77,200,232,0.2); }
-
-/* ═══════════════════════════════════════════
-   GENERATOR
-═══════════════════════════════════════════ */
-.generator {
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 32px;
-  position: relative;
-  overflow: hidden;
-}
-.generator::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--ice), transparent);
-  opacity: 0.6;
-}
-
-/* Corner decorations */
-.gen-corner {
-  position: absolute;
-  width: 16px; height: 16px;
-  border-color: var(--border-ice);
-  border-style: solid;
-  opacity: 0.6;
-}
+/* GENERATOR */
+.generator { background: var(--bg3); border: 1px solid var(--border); border-radius: 14px; padding: 32px; position: relative; overflow: hidden; }
+.generator::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--ice), transparent); opacity: 0.6; }
+.gen-corner { position: absolute; width: 16px; height: 16px; border-color: var(--border-ice); border-style: solid; opacity: 0.6; }
 .gen-corner.tl { top: 12px; left: 12px; border-width: 1px 0 0 1px; }
 .gen-corner.tr { top: 12px; right: 12px; border-width: 1px 1px 0 0; }
 .gen-corner.bl { bottom: 12px; left: 12px; border-width: 0 0 1px 1px; }
 .gen-corner.br { bottom: 12px; right: 12px; border-width: 0 1px 1px 0; }
-
-.gen-layout {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 24px;
-  align-items: start;
-}
-
-.team-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.panel-label {
-  color: var(--text-dim);
-  font-size: 9px;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  font-family: var(--font-display);
-}
-
-.shield-slot {
-  background: var(--bg2);
-  border: 1px dashed var(--border);
-  border-radius: 12px;
-  height: 140px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  transition: border-color 0.2s, background 0.2s;
-  position: relative;
-  overflow: hidden;
-}
-.shield-slot.has-logo {
-  border-style: solid;
-  border-color: var(--border-ice);
-  background: var(--bg3);
-}
-.shield-slot img {
-  width: 80px;
-  height: 80px;
-  object-fit: contain;
-}
-.shield-slot-label {
-  color: var(--text-muted);
-  font-size: 10px;
-  letter-spacing: 1px;
-  font-family: var(--font-body);
-}
-.shield-team-name {
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  text-align: center;
-  padding: 0 8px;
-}
-
-.search-wrap {
-  position: relative;
-}
-.search-input {
-  width: 100%;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 14px 10px 36px;
-  color: var(--text);
-  font-size: 13px;
-  font-family: var(--font-ui);
-  letter-spacing: 0.5px;
-  outline: none;
-  transition: border-color 0.2s;
-}
+.gen-layout { display: grid; grid-template-columns: 1fr auto 1fr; gap: 24px; align-items: start; }
+.team-panel { display: flex; flex-direction: column; gap: 14px; }
+.panel-label { color: var(--text-dim); font-size: 9px; letter-spacing: 3px; text-transform: uppercase; font-family: var(--font-display); }
+.shield-slot { background: var(--bg2); border: 1px dashed var(--border); border-radius: 12px; height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; transition: border-color 0.2s; }
+.shield-slot.has-logo { border-style: solid; border-color: var(--border-ice); background: var(--bg3); }
+.shield-slot img { width: 80px; height: 80px; object-fit: contain; }
+.shield-slot-label { color: var(--text-muted); font-size: 10px; letter-spacing: 1px; font-family: var(--font-body); }
+.shield-team-name { color: var(--text); font-size: 13px; font-weight: 600; text-align: center; padding: 0 8px; }
+.search-wrap { position: relative; }
+.search-input { width: 100%; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px 10px 36px; color: var(--text); font-size: 13px; font-family: var(--font-ui); outline: none; transition: border-color 0.2s; }
 .search-input:focus { border-color: var(--border-ice); }
 .search-input::placeholder { color: var(--text-muted); }
-.search-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-muted);
-  font-size: 13px;
-  pointer-events: none;
-}
-
-.results-list {
-  display: none;
-  flex-direction: column;
-  gap: 4px;
-  max-height: 160px;
-  overflow-y: auto;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 6px;
-}
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px; pointer-events: none; }
+.results-list { display: none; flex-direction: column; gap: 4px; max-height: 200px; overflow-y: auto; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 6px; margin-top: 4px; }
 .results-list.open { display: flex; }
 .results-list::-webkit-scrollbar { width: 4px; }
-.results-list::-webkit-scrollbar-track { background: transparent; }
 .results-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-.result-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.15s;
-  border: 1px solid transparent;
-}
+.result-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; cursor: pointer; transition: background 0.15s; border: 1px solid transparent; }
 .result-item:hover { background: var(--bg3); border-color: var(--border); }
-.result-item.selected { background: rgba(77,200,232,0.08); border-color: var(--border-ice); }
-.result-item img { width: 28px; height: 28px; object-fit: contain; }
-.result-name { color: var(--text); font-size: 12px; font-weight: 500; }
-.result-count { color: var(--text-muted); font-size: 10px; margin-left: auto; }
-
-/* VS CENTER */
-.vs-divider {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding-top: 50px;
-}
-.vs-line-v {
-  width: 1px;
-  height: 36px;
-  background: linear-gradient(180deg, transparent, var(--border));
-}
-.vs-line-v.bottom {
-  background: linear-gradient(180deg, var(--border), transparent);
-}
-.vs-text {
-  color: var(--ice);
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 6px;
-  text-shadow: 0 0 20px rgba(77,200,232,0.4);
-}
-
-/* GENERATE BUTTON */
-.gen-footer {
-  margin-top: 28px;
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.btn-generate {
-  flex: 1;
-  background: var(--ice);
-  color: var(--bg);
-  border: none;
-  border-radius: 10px;
-  padding: 14px 24px;
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-.btn-generate:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(77,200,232,0.25);
-}
-.btn-generate:active { transform: translateY(0); }
+.result-item img { width: 28px; height: 28px; object-fit: contain; flex-shrink: 0; }
+.result-name { color: var(--text); font-size: 13px; font-weight: 500; }
+.no-results { padding: 10px 12px; color: var(--text-muted); font-size: 12px; font-family: var(--font-body); }
+.vs-divider { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding-top: 50px; }
+.vs-line-v { width: 1px; height: 36px; background: linear-gradient(180deg, transparent, var(--border)); }
+.vs-line-v.bottom { background: linear-gradient(180deg, var(--border), transparent); }
+.vs-text { color: var(--ice); font-family: var(--font-display); font-size: 22px; font-weight: 700; letter-spacing: 6px; text-shadow: 0 0 20px rgba(77,200,232,0.4); }
+.gen-footer { margin-top: 28px; display: flex; gap: 12px; }
+.btn-generate { flex: 1; background: var(--ice); color: var(--bg); border: none; border-radius: 10px; padding: 14px 24px; font-family: var(--font-display); font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; cursor: pointer; transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+.btn-generate:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(77,200,232,0.25); }
 .btn-generate:disabled { opacity: 0.3; cursor: not-allowed; transform: none; box-shadow: none; }
-
-.btn-secondary {
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px 18px;
-  color: var(--text-dim);
-  font-family: var(--font-display);
-  font-size: 10px;
-  letter-spacing: 2px;
-  cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
-  white-space: nowrap;
-}
+.btn-secondary { background: transparent; border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; color: var(--text-dim); font-family: var(--font-display); font-size: 10px; letter-spacing: 2px; cursor: pointer; transition: border-color 0.2s, color 0.2s; white-space: nowrap; }
 .btn-secondary:hover { border-color: var(--border-ice); color: var(--ice); }
 
-/* ═══════════════════════════════════════════
-   PREVIEW MODAL
-═══════════════════════════════════════════ */
-#preview-modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(6,16,28,0.92);
-  z-index: 500;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(4px);
-}
+/* MODAL */
+#preview-modal { display: none; position: fixed; inset: 0; background: rgba(6,16,28,0.92); z-index: 500; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
 #preview-modal.open { display: flex; }
-
-.modal-box {
-  background: var(--bg3);
-  border: 1px solid var(--border-ice);
-  border-radius: 16px;
-  padding: 32px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  max-width: 620px;
-  width: 90%;
-  position: relative;
-}
-.modal-box::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--ice), transparent);
-}
-
-.modal-title {
-  color: var(--text);
-  font-family: var(--font-display);
-  font-size: 11px;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-}
-
-.preview-canvas-wrap {
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  width: 100%;
-  aspect-ratio: 512/368;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-#preview-canvas {
-  width: 100%;
-  height: 100%;
-}
-
-.modal-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.btn-download {
-  flex: 1;
-  background: var(--ice);
-  color: var(--bg);
-  border: none;
-  border-radius: 8px;
-  padding: 12px;
-  font-family: var(--font-display);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
+.modal-box { background: var(--bg3); border: 1px solid var(--border-ice); border-radius: 16px; padding: 32px; display: flex; flex-direction: column; gap: 20px; max-width: 600px; width: 90%; position: relative; }
+.modal-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--ice), transparent); border-radius: 16px 16px 0 0; }
+.modal-title { color: var(--text); font-family: var(--font-display); font-size: 11px; letter-spacing: 3px; text-transform: uppercase; }
+.preview-canvas-wrap { background: white; border-radius: 8px; overflow: hidden; }
+#preview-canvas { display: block; width: 100%; height: auto; }
+.dim-label { color: var(--text-muted); font-size: 10px; letter-spacing: 1px; font-family: var(--font-body); text-align: center; }
+.modal-actions { display: flex; gap: 10px; }
+.btn-download { flex: 1; background: var(--ice); color: var(--bg); border: none; border-radius: 8px; padding: 12px; font-family: var(--font-display); font-size: 10px; font-weight: 700; letter-spacing: 3px; cursor: pointer; transition: opacity 0.2s; }
 .btn-download:hover { opacity: 0.85; }
-
-.btn-close-modal {
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px 16px;
-  color: var(--text-dim);
-  font-family: var(--font-display);
-  font-size: 10px;
-  letter-spacing: 2px;
-  cursor: pointer;
-  transition: border-color 0.2s;
-}
+.btn-close-modal { background: transparent; border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; color: var(--text-dim); font-family: var(--font-display); font-size: 10px; letter-spacing: 2px; cursor: pointer; transition: border-color 0.2s; }
 .btn-close-modal:hover { border-color: var(--border-ice); }
 
-.dim-label {
-  color: var(--text-muted);
-  font-size: 10px;
-  letter-spacing: 1px;
-  font-family: var(--font-body);
-  text-align: center;
-}
-
-/* ═══════════════════════════════════════════
-   SIDEBAR MENU
-═══════════════════════════════════════════ */
-#sidebar {
-  position: fixed;
-  top: 0; left: 0; bottom: 0;
-  width: 280px;
-  background: var(--bg3);
-  border-right: 1px solid var(--border);
-  z-index: 200;
-  transform: translateX(-100%);
-  transition: transform 0.3s cubic-bezier(0.76,0,0.24,1);
-  display: flex;
-  flex-direction: column;
-  padding: 80px 24px 32px;
-  gap: 8px;
-}
+/* SIDEBAR */
+#sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: 280px; background: var(--bg3); border-right: 1px solid var(--border); z-index: 200; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.76,0,0.24,1); display: flex; flex-direction: column; padding: 80px 24px 32px; gap: 8px; }
 #sidebar.open { transform: translateX(0); }
-#sidebar::after {
-  content: '';
-  position: absolute;
-  top: 0; right: 0; bottom: 0;
-  width: 1px;
-  background: linear-gradient(180deg, transparent, var(--ice) 50%, transparent);
-  opacity: 0.3;
-}
-
-.sidebar-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 16px;
-  border-radius: 8px;
-  color: var(--text-dim);
-  font-size: 13px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  font-family: var(--font-display);
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-  border: 1px solid transparent;
-}
+#sidebar::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 1px; background: linear-gradient(180deg, transparent, var(--ice) 50%, transparent); opacity: 0.3; }
+.sidebar-item { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 8px; color: var(--text-dim); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; font-family: var(--font-display); cursor: pointer; transition: background 0.2s, color 0.2s; border: 1px solid transparent; }
 .sidebar-item:hover { background: var(--bg4); color: var(--ice); border-color: var(--border); }
-.sidebar-item svg { width: 16px; height: 16px; opacity: 0.7; }
-
-#sidebar-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(6,16,28,0.7);
-  z-index: 199;
-}
+.sidebar-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+#sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(6,16,28,0.7); z-index: 199; }
 #sidebar-overlay.open { display: block; }
 
-/* ═══════════════════════════════════════════
-   BACKGROUND EFFECTS
-═══════════════════════════════════════════ */
-.bg-grid {
-  position: fixed;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(77,200,232,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(77,200,232,0.04) 1px, transparent 1px);
-  background-size: 48px 48px;
-  pointer-events: none;
-  z-index: 0;
-}
-.bg-glow {
-  position: fixed;
-  top: -200px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 600px;
-  height: 400px;
-  background: radial-gradient(ellipse, rgba(77,200,232,0.06) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
+/* BG */
+.bg-grid { position: fixed; inset: 0; background-image: linear-gradient(rgba(77,200,232,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(77,200,232,0.04) 1px, transparent 1px); background-size: 48px 48px; pointer-events: none; z-index: 0; }
+.bg-glow { position: fixed; top: -200px; left: 50%; transform: translateX(-50%); width: 600px; height: 400px; background: radial-gradient(ellipse, rgba(77,200,232,0.06) 0%, transparent 70%); pointer-events: none; z-index: 0; }
 
-/* ═══════════════════════════════════════════
-   TOAST
-═══════════════════════════════════════════ */
-#toast {
-  position: fixed;
-  bottom: 32px;
-  left: 50%;
-  transform: translateX(-50%) translateY(80px);
-  background: var(--bg4);
-  border: 1px solid var(--border-ice);
-  border-radius: 8px;
-  padding: 12px 24px;
-  color: var(--ice);
-  font-family: var(--font-display);
-  font-size: 10px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  z-index: 600;
-  transition: transform 0.3s ease;
-}
+/* TOAST */
+#toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--bg4); border: 1px solid var(--border-ice); border-radius: 8px; padding: 12px 24px; color: var(--ice); font-family: var(--font-display); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; z-index: 600; transition: transform 0.3s ease; pointer-events: none; }
 #toast.show { transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
-
 <div class="bg-grid"></div>
 <div class="bg-glow"></div>
 
-<!-- PORTAL ANIMATION -->
+<!-- PORTAL -->
 <div id="portal">
   <div style="position:relative;">
     <div class="portal-glow"></div>
     <div class="portal-halves">
       <div class="portal-half left" id="ph-left">
-        <svg viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 220 220" fill="none">
           <polygon points="110,10 196,57 196,163 110,210 24,163 24,57" fill="#0d1e35" stroke="#4dc8e8" stroke-width="1.5" stroke-opacity="0.6"/>
           <polygon points="110,22 184,63 184,157 110,198 36,157 36,63" fill="#0a1628"/>
-          <polygon points="110,22 184,63 184,157 110,198 36,157 36,63" fill="#4dc8e8" opacity="0.07"/>
-          <!-- Left eye dark -->
           <ellipse cx="80" cy="110" rx="24" ry="30" fill="#06101c"/>
-          <!-- Left eye white -->
           <ellipse cx="80" cy="107" rx="14" ry="18" fill="white"/>
-          <!-- Right eye dark (half, cut at center) -->
           <ellipse cx="140" cy="110" rx="24" ry="30" fill="#06101c"/>
-          <!-- Right eye white (half) -->
           <ellipse cx="140" cy="107" rx="14" ry="18" fill="white"/>
-          <!-- Hex outline glow -->
-          <polygon points="110,10 196,57 196,163 110,210 24,163 24,57" fill="none" stroke="#4dc8e8" stroke-width="0.5" stroke-opacity="0.3"/>
         </svg>
       </div>
       <div class="portal-half right" id="ph-right">
-        <svg viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 220 220" fill="none">
           <polygon points="110,10 196,57 196,163 110,210 24,163 24,57" fill="#0d1e35" stroke="#4dc8e8" stroke-width="1.5" stroke-opacity="0.6"/>
           <polygon points="110,22 184,63 184,157 110,198 36,157 36,63" fill="#0a1628"/>
-          <polygon points="110,22 184,63 184,157 110,198 36,157 36,63" fill="#4dc8e8" opacity="0.07"/>
           <ellipse cx="80" cy="110" rx="24" ry="30" fill="#06101c"/>
           <ellipse cx="80" cy="107" rx="14" ry="18" fill="white"/>
           <ellipse cx="140" cy="110" rx="24" ry="30" fill="#06101c"/>
           <ellipse cx="140" cy="107" rx="14" ry="18" fill="white"/>
-          <polygon points="110,10 196,57 196,163 110,210 24,163 24,57" fill="none" stroke="#4dc8e8" stroke-width="0.5" stroke-opacity="0.3"/>
         </svg>
       </div>
     </div>
@@ -900,45 +215,28 @@ html, body {
 <!-- SIDEBAR -->
 <div id="sidebar-overlay" onclick="closeSidebar()"></div>
 <div id="sidebar">
-  <div class="sidebar-item">
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
-    Confrontos
-  </div>
-  <div class="sidebar-item">
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 1.5"/></svg>
-    Ao Vivo
-  </div>
-  <div class="sidebar-item">
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M8 2l1.8 3.6L14 6.3l-3 2.9.7 4.1L8 11.2l-3.7 2.1.7-4.1-3-2.9 4.2-.7z"/></svg>
-    Destaques
-  </div>
-  <div class="sidebar-item">
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 3h10v10H3z"/><path d="M3 7h10M7 3v10"/></svg>
-    Escudos
-  </div>
+  <div class="sidebar-item"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>Confrontos</div>
+  <div class="sidebar-item"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 1.5"/></svg>Ao Vivo</div>
+  <div class="sidebar-item"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M8 2l1.8 3.6L14 6.3l-3 2.9.7 4.1L8 11.2l-3.7 2.1.7-4.1-3-2.9 4.2-.7z"/></svg>Destaques</div>
+  <div class="sidebar-item"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6" cy="6" r="4"/><path d="M10 10l3 3"/></svg>Buscar Escudo</div>
 </div>
 
 <!-- APP -->
 <div id="app">
-  <!-- TOPBAR -->
   <header class="topbar">
     <div class="topbar-left">
-      <div class="hamburger" onclick="openSidebar()">
-        <span></span><span></span><span></span>
-      </div>
+      <div class="hamburger" onclick="openSidebar()"><span></span><span></span><span></span></div>
       <div class="live-ticker">
         <div class="live-dot"></div>
         <div class="live-text" id="ticker-text"><strong>Real Madrid</strong> vs Arsenal &nbsp;·&nbsp; 21:00</div>
       </div>
     </div>
-
-    <!-- LOGO -->
-    <a class="logo-wrap" href="https://ice.bet/sports" target="_blank" title="ICE.BET Esportes">
-      <svg class="hex-base-svg" viewBox="0 0 88 94" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <a class="logo-wrap" href="https://ice.bet/sports" target="_blank">
+      <svg class="hex-base-svg" viewBox="0 0 88 94" fill="none">
         <polygon points="44,4 82,26 82,70 44,92 6,70 6,26" fill="#0d1e35" stroke="#4dc8e8" stroke-width="1" stroke-opacity="0.5"/>
         <polygon points="44,8 78,28 78,68 44,88 10,68 10,28" fill="#0a1628"/>
       </svg>
-      <svg class="hex-logo-svg" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg class="hex-logo-svg" viewBox="0 0 60 60" fill="none">
         <polygon points="30,4 54,17 54,43 30,56 6,43 6,17" fill="#4dc8e8"/>
         <ellipse cx="21" cy="30" rx="6.5" ry="8" fill="#06101c"/>
         <ellipse cx="39" cy="30" rx="6.5" ry="8" fill="#06101c"/>
@@ -946,103 +244,74 @@ html, body {
         <ellipse cx="39" cy="29" rx="3.8" ry="5" fill="white"/>
       </svg>
     </a>
-
     <div class="topbar-right">
-      <div class="status-chip">
-        <div class="green-dot"></div>
-        <span class="status-text">10 jogos ao vivo</span>
-      </div>
-      <div class="icon-btn" title="Horário">
-        <svg viewBox="0 0 15 15" fill="none" stroke="#4dc8e8" stroke-width="1.2">
-          <circle cx="7.5" cy="7.5" r="5.5"/>
-          <path d="M7.5 4.5v3l2 1.5"/>
-        </svg>
-      </div>
+      <div class="status-chip"><div class="green-dot"></div><span class="status-text">10 jogos ao vivo</span></div>
+      <div class="icon-btn"><svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="#4dc8e8" stroke-width="1.2"><circle cx="7.5" cy="7.5" r="5.5"/><path d="M7.5 4.5v3l2 1.5"/></svg></div>
     </div>
   </header>
 
-  <!-- MAIN CONTENT -->
   <main class="page" style="position:relative;z-index:1;">
-
-    <!-- GAMES PANEL -->
     <section>
       <div class="section-header">
         <div class="section-label">Jogos do dia</div>
         <div class="section-line"></div>
       </div>
-      <div class="games-grid" id="games-grid">
-        <!-- populated by JS -->
-      </div>
+      <div class="games-grid" id="games-grid"></div>
     </section>
 
-    <!-- GENERATOR -->
     <section>
       <div class="section-header">
         <div class="section-label">Gerador de confronto</div>
         <div class="section-line"></div>
       </div>
       <div class="generator">
-        <div class="gen-corner tl"></div>
-        <div class="gen-corner tr"></div>
-        <div class="gen-corner bl"></div>
-        <div class="gen-corner br"></div>
-
+        <div class="gen-corner tl"></div><div class="gen-corner tr"></div>
+        <div class="gen-corner bl"></div><div class="gen-corner br"></div>
         <div class="gen-layout">
-          <!-- TEAM A -->
           <div class="team-panel">
             <div class="panel-label">Time da Casa</div>
-            <div class="shield-slot" id="slot-a">
-              <div class="shield-slot-label">Selecione o time</div>
-            </div>
+            <div class="shield-slot" id="slot-a"><div class="shield-slot-label">Selecione o time</div></div>
             <div class="search-wrap">
               <span class="search-icon">⌕</span>
-              <input class="search-input" id="search-a" placeholder="Buscar escudo..." autocomplete="off" oninput="handleSearch('a')"/>
+              <input class="search-input" id="search-a" placeholder="Buscar time..." autocomplete="off" oninput="handleSearch('a')"/>
             </div>
             <div class="results-list" id="results-a"></div>
           </div>
-
-          <!-- VS -->
           <div class="vs-divider">
             <div class="vs-line-v"></div>
             <div class="vs-text">VS</div>
             <div class="vs-line-v bottom"></div>
           </div>
-
-          <!-- TEAM B -->
           <div class="team-panel">
             <div class="panel-label">Time Visitante</div>
-            <div class="shield-slot" id="slot-b">
-              <div class="shield-slot-label">Selecione o time</div>
-            </div>
+            <div class="shield-slot" id="slot-b"><div class="shield-slot-label">Selecione o time</div></div>
             <div class="search-wrap">
               <span class="search-icon">⌕</span>
-              <input class="search-input" id="search-b" placeholder="Buscar escudo..." autocomplete="off" oninput="handleSearch('b')"/>
+              <input class="search-input" id="search-b" placeholder="Buscar time..." autocomplete="off" oninput="handleSearch('b')"/>
             </div>
             <div class="results-list" id="results-b"></div>
           </div>
         </div>
-
         <div class="gen-footer">
           <button class="btn-secondary" onclick="clearAll()">Limpar</button>
           <button class="btn-generate" id="btn-gen" onclick="generateImage()" disabled>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="12" height="12" rx="2"/><path d="M4 7h6M7 4v6"/></svg>
-            Gerar imagem &nbsp;·&nbsp; 512 × 368 px
+            Gerar Imagem &nbsp;·&nbsp; 512 × 368 px
           </button>
         </div>
       </div>
     </section>
-
   </main>
 </div>
 
-<!-- PREVIEW MODAL -->
+<!-- MODAL -->
 <div id="preview-modal">
   <div class="modal-box">
     <div class="modal-title">Preview · 512 × 368 px</div>
     <div class="preview-canvas-wrap">
       <canvas id="preview-canvas" width="512" height="368"></canvas>
     </div>
-    <div class="dim-label">Imagem gerada em 512 × 368 px · Fundo branco · Pronta para os cards</div>
+    <div class="dim-label">512 × 368 px · Fundo branco · Pronta para os cards da Ice.Bet</div>
     <div class="modal-actions">
       <button class="btn-close-modal" onclick="closeModal()">Fechar</button>
       <button class="btn-download" onclick="downloadImage()">⬇ Baixar PNG</button>
@@ -1050,265 +319,309 @@ html, body {
   </div>
 </div>
 
-<!-- TOAST -->
 <div id="toast"></div>
 
 <script>
-// ═══════════════════════════════════════
-// PORTAL
-// ═══════════════════════════════════════
-setTimeout(() => {
-  document.getElementById('ph-left').classList.add('open');
-  document.getElementById('ph-right').classList.add('open');
-  setTimeout(() => {
-    document.getElementById('portal').classList.add('done');
-    setTimeout(() => {
-      document.getElementById('portal').style.display = 'none';
-    }, 700);
-  }, 800);
-}, 1000);
-
-// ═══════════════════════════════════════
-// SIDEBAR
-// ═══════════════════════════════════════
-function openSidebar() {
-  document.getElementById('sidebar').classList.add('open');
-  document.getElementById('sidebar-overlay').classList.add('open');
-}
-function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('sidebar-overlay').classList.remove('open');
-}
-
-// ═══════════════════════════════════════
-// GAMES DATA
-// ═══════════════════════════════════════
-const games = [
-  { comp:'Champions', home:'Real Madrid', away:'Arsenal', time:'21:00', featured:true },
-  { comp:'Libertadores', home:'Flamengo', away:'Fluminense', time:'19:30', featured:false },
-  { comp:'Premier', home:'Man City', away:'Liverpool', time:'16:30', featured:false },
-  { comp:'La Liga', home:'Barcelona', away:'Atlético', time:'21:00', featured:false },
-  { comp:'Série A', home:'Palmeiras', away:'Corinthians', time:'20:00', featured:false },
-  { comp:'Bundesliga', home:'Bayern', away:'Dortmund', time:'15:30', featured:false },
-  { comp:'Serie A', home:'Inter', away:'Juventus', time:'17:00', featured:false },
-  { comp:'Ligue 1', home:'PSG', away:'Lyon', time:'20:45', featured:false },
-  { comp:'Sul-Am.', home:'Peñarol', away:'Platense', time:'18:00', featured:false },
-  { comp:'Libertadores', home:'Boca', away:'Colo-Colo', time:'22:00', featured:false },
+// ════════════════════════════════════════════
+// BASE DE TIMES — mapeado para /logos/*.png
+// ════════════════════════════════════════════
+const TEAMS = [
+  // Serie A Italiana
+  {n:'AC Milan',file:'ac-milan'},{n:'Atalanta',file:'atalanta'},{n:'Bologna',file:'bologna'},
+  {n:'Cagliari',file:'cagliari'},{n:'Como 1907',file:'como-1907'},{n:'Cremonese',file:'cremonese'},
+  {n:'Fiorentina',file:'fiorentina'},{n:'Genoa',file:'genoa'},{n:'Inter Milan',file:'inter-milan'},
+  {n:'Juventus',file:'juventus'},{n:'Lazio',file:'lazio'},{n:'Lecce',file:'lecce'},
+  {n:'Napoli',file:'napoli'},{n:'Parma',file:'parma'},{n:'Pisa',file:'pisa'},
+  {n:'Roma',file:'roma'},{n:'Sassuolo',file:'sassuolo'},{n:'Torino',file:'torino'},
+  {n:'Udinese',file:'udinese'},{n:'Verona',file:'verona'},
+  // Bundesliga
+  {n:'Augsburg',file:'augsburg'},{n:'Bayer Leverkusen',file:'bayer-leverkusen'},
+  {n:'Bayern Munich',file:'bayern-munich'},{n:'Borussia Dortmund',file:'borussia-dortmund'},
+  {n:'Borussia Monchengladbach',file:'borussia-monchengladbach'},{n:'Frankfurt',file:'frankfurt'},
+  {n:'Freiburg',file:'freiburg'},{n:'Hamburger',file:'hamburger'},{n:'Heidenheim',file:'heidenheim'},
+  {n:'Hoffenheim',file:'hoffenheim'},{n:'Koln',file:'koln'},{n:'Mainz',file:'mainz'},
+  {n:'RB Leipzig',file:'rb-leipzig'},{n:'St Pauli',file:'st-pauli'},{n:'Stuttgart',file:'stuttgart'},
+  {n:'Union Berlin',file:'union-berlin'},{n:'Werder Bremen',file:'werder-bremen'},{n:'Wolfsburg',file:'wolfsburg'},
+  // La Liga
+  {n:'Alaves',file:'alaves'},{n:'Athletic Bilbao',file:'athletic-bilbao'},{n:'Atletico Madrid',file:'atletico-madrid'},
+  {n:'Barcelona',file:'barcelona'},{n:'Betis',file:'betis'},{n:'Celta Vigo',file:'celta-vigo'},
+  {n:'Elche',file:'elche'},{n:'Espanyol',file:'espanyol'},{n:'Getafe',file:'getafe'},
+  {n:'Girona',file:'girona'},{n:'Levante',file:'levante'},{n:'Mallorca',file:'mallorca'},
+  {n:'Osasuna',file:'osasuna'},{n:'Rayo Vallecano',file:'rayo-vallecano'},{n:'Real Madrid',file:'real-madrid'},
+  {n:'Real Sociedad',file:'real-ociedad'},{n:'Real Oviedo',file:'real-oviedo'},
+  {n:'Sevilla',file:'sevilla'},{n:'Valencia',file:'valencia'},{n:'Villarreal',file:'villarreal'},
+  // Premier League
+  {n:'Arsenal',file:'arsenal'},{n:'Aston Villa',file:'aston-villa'},{n:'Bournemouth',file:'bournemouth'},
+  {n:'Brentford',file:'brentford'},{n:'Brighton',file:'brighton'},{n:'Burnley',file:'burnley'},
+  {n:'Chelsea',file:'chelsea'},{n:'Crystal Palace',file:'crystal-palace'},{n:'Everton',file:'everton'},
+  {n:'Fulham',file:'fulham'},{n:'Leeds',file:'leeds'},{n:'Liverpool',file:'liverpool'},
+  {n:'Manchester City',file:'man-city'},{n:'Manchester United',file:'man-united'},
+  {n:'Newcastle',file:'newcastle'},{n:'Nottingham Forest',file:'nottingham'},{n:'Port Vale',file:'port-vale'},
+  {n:'Southampton',file:'southampton'},{n:'Sunderland',file:'sunderland'},{n:'Tottenham',file:'tottenham'},
+  {n:'West Ham',file:'west-ham'},{n:'Wolves',file:'wolves'},
+  // MLS
+  {n:'Atlanta United',file:'atlanta-united'},{n:'Austin FC',file:'austin'},{n:'Charlotte FC',file:'charlotte'},
+  {n:'Chicago Fire',file:'chicago-fire'},{n:'Cincinnati',file:'cincinnati'},{n:'Colorado Rapids',file:'colorado-rapids'},
+  {n:'Columbus Crew',file:'columbus-crew'},{n:'Dallas',file:'dallas'},{n:'DC United',file:'dc-united'},
+  {n:'LA Galaxy',file:'galaxy'},{n:'Houston Dynamo',file:'houston-dynamo'},{n:'Inter Miami',file:'inter-miami'},
+  {n:'Los Angeles FC',file:'los-angeles'},{n:'Minnesota United',file:'minnesota-united'},{n:'Montreal',file:'montreal'},
+  {n:'Nashville SC',file:'nashville'},{n:'New England Revolution',file:'new-england-revolution'},
+  {n:'New York City FC',file:'new-york-city'},{n:'New York Red Bulls',file:'new-york-redbulls'},
+  {n:'Orlando City',file:'orlando-city'},{n:'Philadelphia Union',file:'philadelphia-union'},
+  {n:'Portland Timbers',file:'portland-timbers'},{n:'Real Salt Lake',file:'real-salt-lake'},
+  {n:'San Diego FC',file:'san-diego'},{n:'San Jose Earthquakes',file:'san-jose-earthquakes'},
+  {n:'Seattle Sounders',file:'seattle-sounders'},{n:'Sporting Kansas City',file:'sporting-kansas-city'},
+  {n:'St Louis City',file:'st-louis-city'},{n:'Toronto FC',file:'toronto'},{n:'Vancouver Whitecaps',file:'vancouver-whitecaps'},
+  // Ligue 1
+  {n:'Angers',file:'angers'},{n:'Auxerre',file:'auxerre'},{n:'Brest',file:'brest'},
+  {n:'Le Havre',file:'havre'},{n:'Lens',file:'lens'},{n:'Lille',file:'lille'},
+  {n:'Lorient',file:'lorient'},{n:'Lyon',file:'lyon'},{n:'Metz',file:'metz'},
+  {n:'Monaco',file:'monaco'},{n:'Nantes',file:'nantes'},{n:'Nice',file:'nice'},
+  {n:'Olympique de Marseille',file:'olympique-de-marseille'},{n:'Marseille',file:'olympique-de-marseille'},
+  {n:'Paris FC',file:'paris-fc'},{n:'Paris Saint-Germain',file:'paris-saint-germain'},{n:'PSG',file:'paris-saint-germain'},
+  {n:'Rennes',file:'rennes'},{n:'Strasbourg',file:'strasbourg-alsace'},{n:'Toulouse',file:'toulouse'},
+  // Primeira Liga PT
+  {n:'Arouca',file:'arouca'},{n:'Benfica',file:'benfica'},{n:'Boa Vista',file:'boa-vista'},
+  {n:'Braga',file:'braga'},{n:'Casa Pia',file:'casa-pia'},{n:'Chaves',file:'chaves'},
+  {n:'Estoril Praia',file:'estoril-praia'},{n:'Estrela Amadora',file:'estrela-amadora'},
+  {n:'Famalicao',file:'famalicao'},{n:'Farense',file:'farense'},{n:'Moreirense',file:'moreirense'},
+  {n:'Portimonense',file:'portimonense'},{n:'Porto',file:'porto'},{n:'Rio Ave',file:'rio-ave'},
+  {n:'Santa Clara',file:'santa-clara'},{n:'Sporting CP',file:'sporting'},{n:'Vicente',file:'vicente'},
+  {n:'Vitoria SC',file:'vitoria'},{n:'Vizela',file:'vizela'},
+  // Equador / Sul-América
+  {n:'Aucas',file:'aucas'},{n:'Barcelona SC',file:'barcelona-sc'},{n:'Delfin SC',file:'delfin-sc'},
+  {n:'Deportivo Cuenca',file:'deportivo-cuenca'},{n:'El Nacional',file:'el-nacional-ecuador'},
+  {n:'Emelec',file:'emelec'},{n:'Independiente del Valle',file:'independiente-del-valle'},
+  {n:'LDU Quito',file:'ldu-quito'},{n:'Libertad',file:'libertad'},{n:'Macara',file:'macara'},
+  {n:'Manta FC',file:'manta'},{n:'Mushuc Runa',file:'mushuc-runa'},{n:'Orense',file:'orense'},
+  {n:'Tecnico Universitario',file:'tecnico-universitario'},{n:'Universidad Catolica',file:'universidad-catolica'},
+  {n:'Vinotinto',file:'vinotinto'},
+  // Argentina
+  {n:'Aldosivi',file:'aldosivi'},{n:'Argentinos Juniors',file:'argentinos-juniors'},
+  {n:'Atletico Platense',file:'atletico-platense'},{n:'Atletico Tucuman',file:'atletico-tucuman'},
+  {n:'Banfield',file:'banfield'},{n:'Barracas Central',file:'barracas-central'},
+  {n:'Belgrano',file:'belgrano'},{n:'Boca Juniors',file:'boca-juniors'},
+  {n:'Central Cordoba',file:'central-cordoba'},{n:'Defensa y Justicia',file:'defensa-y-justicia'},
+  {n:'Deportivo Riestra',file:'deportivo-riestra'},{n:'Estudiantes de La Plata',file:'estudiantes-de-la-plata'},
+  {n:'Gimnasia y Esgrima',file:'gimnasia-y-esgrima'},{n:'Godoy Cruz',file:'godoy-cruz'},
+  {n:'Huracan',file:'huracan'},{n:'Independiente Rivadavia',file:'independiente-rivadavia'},
+  {n:'Independiente',file:'independiente'},{n:'Instituto Cordoba',file:'instituto-cordoba'},
+  {n:'Lanus',file:'lanus'},{n:'Newells Old Boys',file:'old-boys'},{n:'Racing Club',file:'racing-club'},
+  {n:'River Plate',file:'river-plate'},{n:'Rosario Central',file:'rosario-central'},
+  {n:'San Lorenzo',file:'san-lorenzo'},{n:'San Martin',file:'san-martin'},
+  {n:'Sarmiento',file:'sarmiento'},{n:'Talleres',file:'talleres'},{n:'Tigre',file:'tigre'},
+  {n:'Union',file:'union'},{n:'Velez Sarsfield',file:'velez-sarsfield'},
+  // Sul-Americanos Libertadores
+  {n:'Always Ready',file:'always-ready'},{n:'Atletico Junior',file:'atletico-junior'},
+  {n:'Bolivar',file:'bolivar'},{n:'Cerro Porteno',file:'cerro-porteno'},
+  {n:'Coquimbo Unido',file:'coquimbo'},{n:'Corinthians',file:'corinthians'},
+  {n:'Cruzeiro',file:'cruzeiro'},{n:'Cusco FC',file:'cusco'},
+  {n:'Deportivo La Guaira',file:'deportivo-la-guaira'},{n:'Flamengo',file:'flamengo'},
+  {n:'Fluminense',file:'fluminense'},{n:'Independiente Medellin',file:'independiente-medellin'},
+  {n:'Mirassol',file:'mirassol'},{n:'Nacional',file:'nacional'},{n:'Palmeiras',file:'palmeiras'},
+  {n:'Penarol',file:'penarol'},{n:'Platense',file:'platense'},{n:'Rosario',file:'rosario'},
+  {n:'Santa Fe',file:'santa-fe'},{n:'Sporting Cristal',file:'sporting-cristal'},
+  {n:'Tolima',file:'tolima'},{n:'Universidad Central',file:'universidad-central'},{n:'Universitario',file:'universitario'},
+  // Brasileirao
+  {n:'America MG',file:'america-mg'},{n:'Athletic Club',file:'athletic'},{n:'Athletico PR',file:'atletico-pr'},
+  {n:'Atletico GO',file:'atletico-go'},{n:'Atletico MG',file:'atletico-mg'},{n:'Avai',file:'avai'},
+  {n:'Bahia',file:'bahia'},{n:'Botafogo SP',file:'botafogo-sp'},{n:'Botafogo',file:'botafogo'},
+  {n:'Bragantino',file:'bragantino'},{n:'Ceara',file:'ceara'},{n:'Chapecoense',file:'chapecoense'},
+  {n:'Coritiba',file:'coritiba'},{n:'CRB',file:'crb'},{n:'Criciuma',file:'criciuma'},
+  {n:'Cuiaba',file:'cuiaba'},{n:'Fortaleza',file:'fortaleza'},{n:'Goias',file:'goias'},
+  {n:'Gremio',file:'gremio'},{n:'Internacional',file:'internacional'},{n:'Juventude',file:'juventude'},
+  {n:'Londrina',file:'londrina'},{n:'Nautico',file:'nautico'},{n:'Novorizontino',file:'novorizontino'},
+  {n:'Operario Ferroviario',file:'operario-ferroviario'},{n:'Ponte Preta',file:'ponte-preta'},
+  {n:'Remo',file:'remo'},{n:'Santos',file:'santos'},{n:'Sao Bernardo',file:'sao-bernardo'},
+  {n:'Sao Paulo',file:'sao-paulo'},{n:'Sport Recife',file:'sport-recife'},
+  {n:'Vasco',file:'vasco'},{n:'Vila Nova',file:'vila-nova'},{n:'Vitoria',file:'vitoria'},
+  // Selecoes
+  {n:'Alemanha',file:'alemanha'},{n:'Arabia Saudita',file:'arabia-saudita'},
+  {n:'Argelia',file:'argelia'},{n:'Argentina',file:'argentina'},{n:'Australia',file:'australia'},
+  {n:'Austria',file:'austria'},{n:'Belgica',file:'belgica'},{n:'Brasil',file:'brasil'},
+  {n:'Cabo Verde',file:'cabo-verde'},{n:'Canada',file:'canada'},{n:'Colombia',file:'colombia'},
+  {n:'Coreia do Sul',file:'coreia-do-sul'},{n:'Costa do Marfim',file:'costa-do-marfim'},
+  {n:'Croatia',file:'croacia'},{n:'Curacao',file:'curacao'},{n:'Egito',file:'egito'},
+  {n:'Equador',file:'equador'},{n:'Escocia',file:'escocia'},{n:'Espanha',file:'espanha'},
+  {n:'Estados Unidos',file:'estados-unidos'},{n:'Franca',file:'franca'},{n:'Ghana',file:'ghana'},
+  {n:'Haiti',file:'haiti'},{n:'Holanda',file:'holanda'},{n:'Inglaterra',file:'inglaterra'},
+  {n:'Ira',file:'ira'},{n:'Japao',file:'japao'},{n:'Jordania',file:'jordania'},
+  {n:'Marrocos',file:'marrocos'},{n:'Mexico',file:'mexico'},{n:'Noruega',file:'noruega'},
+  {n:'Nova Zelandia',file:'nova-zelandia'},{n:'Panama',file:'panama'},
+  {n:'Paraguai',file:'paraguai'},{n:'Portugal',file:'portugal'},{n:'Qatar',file:'qatar'},
+  {n:'Senegal',file:'senegal'},{n:'Suica',file:'suica'},{n:'Tunisia',file:'tunisia'},
+  {n:'Uruguai',file:'uruguai'},{n:'Uzbequistao',file:'uzbequistao'},
 ];
 
-// Ticker rotation
-let tickerIdx = 0;
-function rotateTicker() {
-  const g = games[tickerIdx % games.length];
-  document.getElementById('ticker-text').innerHTML = `<strong>${g.home}</strong> vs ${g.away} &nbsp;·&nbsp; ${g.time}`;
-  tickerIdx++;
-}
-setInterval(rotateTicker, 4000);
+function logo(file){ return `logos/${file}.png`; }
 
-function renderGames() {
-  const grid = document.getElementById('games-grid');
-  grid.innerHTML = games.map((g, i) => `
-    <div class="game-card${g.featured ? ' featured' : ''}" onclick="useGame(${i})">
-      <div class="game-comp">${g.comp}</div>
-      <div class="game-teams">
-        <div class="team-name">${g.home}</div>
-        <div class="vs-small">vs</div>
-        <div class="team-name">${g.away}</div>
-      </div>
-      <div class="game-time"><span class="game-time-val">${g.time}</span> · Hoje</div>
-      <button class="use-btn">Usar</button>
-    </div>
-  `).join('');
-}
-renderGames();
-
-function useGame(i) {
-  const g = games[i];
-  document.getElementById('search-a').value = g.home;
-  document.getElementById('search-b').value = g.away;
-  handleSearch('a');
-  handleSearch('b');
-  showToast('Jogo selecionado!');
+function norm(s){
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[-_]/g,' ');
 }
 
-// ═══════════════════════════════════════
-// TEAMS / LOGOS
-// ═══════════════════════════════════════
-// Uses API-Football logo CDN as fallback for demo
-// In production, these come from /logos/ folder
-const teams = [
-  { name: 'Flamengo', id: 127 },
-  { name: 'Fluminense', id: 124 },
-  { name: 'Palmeiras', id: 121 },
-  { name: 'Corinthians', id: 131 },
-  { name: 'São Paulo', id: 126 },
-  { name: 'Santos', id: 128 },
-  { name: 'Atletico Mineiro', id: 1062 },
-  { name: 'Botafogo', id: 129 },
-  { name: 'Vasco', id: 130 },
-  { name: 'Cruzeiro', id: 140 },
-  { name: 'Real Madrid', id: 541 },
-  { name: 'Barcelona', id: 529 },
-  { name: 'Arsenal', id: 42 },
-  { name: 'Liverpool', id: 40 },
-  { name: 'Man City', id: 50 },
-  { name: 'Bayern', id: 157 },
-  { name: 'Dortmund', id: 165 },
-  { name: 'Juventus', id: 496 },
-  { name: 'Inter', id: 505 },
-  { name: 'PSG', id: 85 },
-  { name: 'Atlético', id: 530 },
-  { name: 'Lyon', id: 80 },
-  { name: 'Peñarol', id: 1079 },
-  { name: 'Boca Juniors', id: 405 },
-  { name: 'River Plate', id: 406 },
-  { name: 'Independiente', id: 435 },
-  { name: 'Colo-Colo', id: 661 },
-  { name: 'Nacional', id: 1074 },
-  { name: 'Lanus', id: 436 },
-  { name: 'Always Ready', id: 1144 },
-];
+// ════════════════════════════════
+// SEARCH
+// ════════════════════════════════
+let selA=null, selB=null;
 
-function getLogoUrl(id) {
-  return `https://media.api-sports.io/football/teams/${id}.png`;
-}
-
-let selectedA = null, selectedB = null;
-
-function handleSearch(side) {
-  const q = document.getElementById(`search-${side}`).value.toLowerCase().trim();
+function handleSearch(side){
+  const q = norm(document.getElementById(`search-${side}`).value);
   const list = document.getElementById(`results-${side}`);
-  if (!q) { list.classList.remove('open'); return; }
-  const found = teams.filter(t => t.name.toLowerCase().includes(q));
-  if (!found.length) { list.innerHTML = '<div style="padding:10px 12px;color:var(--text-muted);font-size:12px;">Nenhum time encontrado</div>'; list.classList.add('open'); return; }
-  list.innerHTML = found.map(t => `
-    <div class="result-item" onclick="selectTeam('${side}', ${t.id}, '${t.name.replace(/'/g,"\\'")}')">
-      <img src="${getLogoUrl(t.id)}" onerror="this.style.opacity='0.3'" alt="${t.name}"/>
-      <span class="result-name">${t.name}</span>
-    </div>
-  `).join('');
+  if(!q || q.length < 2){ list.classList.remove('open'); return; }
+  const found = TEAMS.filter(t => norm(t.n).includes(q)).slice(0,8);
+  if(!found.length){
+    list.innerHTML=`<div class="no-results">Nenhum time encontrado</div>`;
+    list.classList.add('open'); return;
+  }
+  list.innerHTML = found.map(t=>`
+    <div class="result-item" onclick="pick('${side}','${t.file}','${t.n.replace(/'/g,"\\'")}')">
+      <img src="${logo(t.file)}" onerror="this.style.opacity='0.15'" alt="${t.n}"/>
+      <span class="result-name">${t.n}</span>
+    </div>`).join('');
   list.classList.add('open');
 }
 
-function selectTeam(side, id, name) {
+function pick(side,file,name){
+  const url = logo(file);
   const slot = document.getElementById(`slot-${side}`);
-  const url = getLogoUrl(id);
-  slot.innerHTML = `<img src="${url}" alt="${name}" onerror="this.style.opacity='0.3'"/><div class="shield-team-name">${name}</div>`;
+  slot.innerHTML=`<img src="${url}" onerror="this.style.opacity='0.15'" alt="${name}"/><div class="shield-team-name">${name}</div>`;
   slot.classList.add('has-logo');
-  document.getElementById(`search-${side}`).value = name;
+  document.getElementById(`search-${side}`).value=name;
   document.getElementById(`results-${side}`).classList.remove('open');
-
-  if (side === 'a') { selectedA = { id, name, url }; }
-  else { selectedB = { id, name, url }; }
-
-  checkReady();
+  if(side==='a') selA={file,name,url}; else selB={file,name,url};
+  document.getElementById('btn-gen').disabled=!(selA&&selB);
 }
 
-function checkReady() {
-  document.getElementById('btn-gen').disabled = !(selectedA && selectedB);
-}
-
-function clearAll() {
-  selectedA = null; selectedB = null;
-  ['a','b'].forEach(s => {
-    document.getElementById(`slot-${s}`).innerHTML = '<div class="shield-slot-label">Selecione o time</div>';
+function clearAll(){
+  selA=null; selB=null;
+  ['a','b'].forEach(s=>{
+    document.getElementById(`slot-${s}`).innerHTML='<div class="shield-slot-label">Selecione o time</div>';
     document.getElementById(`slot-${s}`).classList.remove('has-logo');
-    document.getElementById(`search-${s}`).value = '';
+    document.getElementById(`search-${s}`).value='';
     document.getElementById(`results-${s}`).classList.remove('open');
   });
-  checkReady();
+  document.getElementById('btn-gen').disabled=true;
 }
 
-// ═══════════════════════════════════════
-// IMAGE GENERATION
-// ═══════════════════════════════════════
-function generateImage() {
-  if (!selectedA || !selectedB) return;
-  const canvas = document.getElementById('preview-canvas');
-  const ctx = canvas.getContext('2d');
-  canvas.width = 512;
-  canvas.height = 368;
+// ════════════════════════════════
+// GAMES
+// ════════════════════════════════
+const GAMES=[
+  {comp:'Champions',    home:'Real Madrid',  away:'Arsenal',      time:'21:00',fileA:'real-madrid',       fileB:'arsenal',          featured:true},
+  {comp:'Libertadores', home:'Flamengo',     away:'Fluminense',   time:'19:30',fileA:'flamengo',          fileB:'fluminense',        featured:false},
+  {comp:'Premier',      home:'Man City',     away:'Liverpool',    time:'16:30',fileA:'man-city',          fileB:'liverpool',         featured:false},
+  {comp:'La Liga',      home:'Barcelona',    away:'Atletico',     time:'21:00',fileA:'barcelona',         fileB:'atletico-madrid',   featured:false},
+  {comp:'Serie A BR',   home:'Palmeiras',    away:'Corinthians',  time:'20:00',fileA:'palmeiras',         fileB:'corinthians',       featured:false},
+  {comp:'Bundesliga',   home:'Bayern',       away:'Dortmund',     time:'15:30',fileA:'bayern-munich',     fileB:'borussia-dortmund', featured:false},
+  {comp:'Serie A IT',   home:'Inter Milan',  away:'Juventus',     time:'17:00',fileA:'inter-milan',       fileB:'juventus',          featured:false},
+  {comp:'Ligue 1',      home:'PSG',          away:'Lyon',         time:'20:45',fileA:'paris-saint-germain',fileB:'lyon',             featured:false},
+  {comp:'Libertadores', home:'Penarol',      away:'Platense',     time:'18:00',fileA:'penarol',           fileB:'platense',          featured:false},
+  {comp:'Libertadores', home:'Boca Juniors', away:'River Plate',  time:'22:00',fileA:'boca-juniors',      fileB:'river-plate',       featured:false},
+];
 
-  // White background
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, 512, 368);
+let ti=0;
+setInterval(()=>{
+  const g=GAMES[ti%GAMES.length];
+  document.getElementById('ticker-text').innerHTML=`<strong>${g.home}</strong> vs ${g.away} &nbsp;·&nbsp; ${g.time}`;
+  ti++;
+},4000);
 
-  const imgA = new Image(); imgA.crossOrigin = 'anonymous';
-  const imgB = new Image(); imgB.crossOrigin = 'anonymous';
-  let loaded = 0;
+document.getElementById('games-grid').innerHTML=GAMES.map((g,i)=>`
+  <div class="game-card${g.featured?' featured':''}">
+    <div class="game-comp">${g.comp}</div>
+    <div class="game-teams">
+      <div class="team-name">${g.home}</div>
+      <div class="vs-small">vs</div>
+      <div class="team-name">${g.away}</div>
+    </div>
+    <div class="game-time"><span class="game-time-val">${g.time}</span> · Hoje</div>
+    <button class="use-btn" onclick="useGame(${i})">Usar</button>
+  </div>`).join('');
 
-  function onLoad() {
-    loaded++;
-    if (loaded < 2) return;
-    drawConfrontation(ctx, imgA, imgB);
-    document.getElementById('preview-modal').classList.add('open');
-  }
-
-  imgA.onload = onLoad;
-  imgB.onload = onLoad;
-  imgA.onerror = () => { imgA._failed = true; onLoad(); };
-  imgB.onerror = () => { imgB._failed = true; onLoad(); };
-  imgA.src = selectedA.url;
-  imgB.src = selectedB.url;
+function useGame(i){
+  const g=GAMES[i];
+  pick('a',g.fileA,g.home);
+  pick('b',g.fileB,g.away);
+  showToast('Jogo selecionado!');
+  document.querySelector('.generator').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-function drawConfrontation(ctx, imgA, imgB) {
-  const W = 512, H = 368;
-  const logoSize = 120;
-  const logoY = (H - logoSize) / 2;
+// ════════════════════════════════
+// IMAGE 512x368
+// ════════════════════════════════
+function generateImage(){
+  if(!selA||!selB) return;
+  const cv=document.getElementById('preview-canvas');
+  const ctx=cv.getContext('2d');
+  cv.width=512; cv.height=368;
+  ctx.fillStyle='#ffffff';
+  ctx.fillRect(0,0,512,368);
 
-  // Team A — left third
-  const axCenter = W * 0.27;
-  if (!imgA._failed) {
-    ctx.drawImage(imgA, axCenter - logoSize/2, logoY, logoSize, logoSize);
-  }
-
-  // VS text
-  ctx.fillStyle = '#1a1a2e';
-  ctx.font = 'bold 28px Arial, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('vs', W / 2, H / 2);
-
-  // Team B — right third
-  const bxCenter = W * 0.73;
-  if (!imgB._failed) {
-    ctx.drawImage(imgB, bxCenter - logoSize/2, logoY, logoSize, logoSize);
-  }
+  const iA=new Image(); iA.crossOrigin='anonymous';
+  const iB=new Image(); iB.crossOrigin='anonymous';
+  let done=0;
+  function tryDraw(){ if(++done<2) return; draw(ctx,iA,iB); document.getElementById('preview-modal').classList.add('open'); }
+  iA.onload=tryDraw; iA.onerror=()=>{iA._e=true;tryDraw();};
+  iB.onload=tryDraw; iB.onerror=()=>{iB._e=true;tryDraw();};
+  iA.src=selA.url; iB.src=selB.url;
 }
 
-function downloadImage() {
-  const canvas = document.getElementById('preview-canvas');
-  const link = document.createElement('a');
-  const nameA = selectedA ? selectedA.name.replace(/\s/g,'_') : 'TimeA';
-  const nameB = selectedB ? selectedB.name.replace(/\s/g,'_') : 'TimeB';
-  link.download = `${nameA}_vs_${nameB}.png`;
-  link.href = canvas.toDataURL('image/png');
-  link.click();
-  showToast('Imagem baixada!');
+function draw(ctx,iA,iB){
+  const W=512,H=368,S=120,cy=H/2;
+  if(!iA._e) ctx.drawImage(iA, W*0.27-S/2, cy-S/2, S, S);
+  ctx.fillStyle='#111111';
+  ctx.font='bold 24px Arial,sans-serif';
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+  ctx.fillText('vs',W/2,cy);
+  if(!iB._e) ctx.drawImage(iB, W*0.73-S/2, cy-S/2, S, S);
 }
 
-function closeModal() {
-  document.getElementById('preview-modal').classList.remove('open');
+function downloadImage(){
+  const cv=document.getElementById('preview-canvas');
+  const a=document.createElement('a');
+  const nA=(selA?.name||'TimeA').replace(/[^a-zA-Z0-9]/g,'_');
+  const nB=(selB?.name||'TimeB').replace(/[^a-zA-Z0-9]/g,'_');
+  a.download=`${nA}_vs_${nB}.png`;
+  a.href=cv.toDataURL('image/png');
+  a.click();
+  showToast('Download iniciado!');
 }
 
-// ═══════════════════════════════════════
+function closeModal(){ document.getElementById('preview-modal').classList.remove('open'); }
+
+// ════════════════════════════════
+// PORTAL
+// ════════════════════════════════
+setTimeout(()=>{
+  document.getElementById('ph-left').classList.add('open');
+  document.getElementById('ph-right').classList.add('open');
+  setTimeout(()=>{
+    document.getElementById('portal').classList.add('done');
+    setTimeout(()=>document.getElementById('portal').style.display='none',700);
+  },800);
+},1000);
+
+// ════════════════════════════════
+// SIDEBAR
+// ════════════════════════════════
+function openSidebar(){ document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebar-overlay').classList.add('open'); }
+function closeSidebar(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.remove('open'); }
+
+// ════════════════════════════════
 // TOAST
-// ═══════════════════════════════════════
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+// ════════════════════════════════
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
 }
 
-// Close results on outside click
-document.addEventListener('click', (e) => {
-  ['a','b'].forEach(s => {
-    if (!document.getElementById(`search-${s}`).contains(e.target) &&
-        !document.getElementById(`results-${s}`).contains(e.target)) {
+document.addEventListener('click',e=>{
+  ['a','b'].forEach(s=>{
+    if(!document.getElementById(`search-${s}`).contains(e.target)&&
+       !document.getElementById(`results-${s}`).contains(e.target))
       document.getElementById(`results-${s}`).classList.remove('open');
-    }
   });
 });
 </script>
