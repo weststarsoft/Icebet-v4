@@ -171,8 +171,9 @@ html, body { width: 100%; min-height: 100vh; background: var(--bg); color: var(-
 #sidebar-overlay.open { display: block; }
 
 /* BG */
-.bg-grid { position: fixed; inset: 0; background-image: linear-gradient(rgba(77,200,232,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(77,200,232,0.04) 1px, transparent 1px); background-size: 48px 48px; pointer-events: none; z-index: 0; }
-.bg-glow { position: fixed; top: -200px; left: 50%; transform: translateX(-50%); width: 600px; height: 400px; background: radial-gradient(ellipse, rgba(77,200,232,0.06) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+.bg-image { position: fixed; inset: 0; background-image: url('Background_2.png'); background-size: cover; background-position: center top; background-repeat: no-repeat; pointer-events: none; z-index: 0; }
+.bg-overlay { position: fixed; inset: 0; background: linear-gradient(180deg, rgba(6,16,28,0.55) 0%, rgba(6,16,28,0.75) 40%, rgba(6,16,28,0.92) 100%); pointer-events: none; z-index: 0; }
+.bg-grid { position: fixed; inset: 0; background-image: linear-gradient(rgba(77,200,232,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(77,200,232,0.03) 1px, transparent 1px); background-size: 48px 48px; pointer-events: none; z-index: 0; }
 
 /* TOAST */
 #toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--bg4); border: 1px solid var(--border-ice); border-radius: 8px; padding: 12px 24px; color: var(--ice); font-family: var(--font-display); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; z-index: 600; transition: transform 0.3s ease; pointer-events: none; }
@@ -180,8 +181,9 @@ html, body { width: 100%; min-height: 100vh; background: var(--bg); color: var(-
 </style>
 </head>
 <body>
+<div class="bg-image"></div>
+<div class="bg-overlay"></div>
 <div class="bg-grid"></div>
-<div class="bg-glow"></div>
 
 <!-- PORTAL -->
 <div id="portal">
