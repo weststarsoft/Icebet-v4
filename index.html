@@ -610,9 +610,7 @@ async function fetchGames() {
   const today = new Date().toISOString().split('T')[0];
 
   try {
-    const res = await fetch(`${API_BASE}/fixtures?date=${today}&timezone=America/Sao_Paulo`, {
-      headers: { 'x-apisports-key': API_KEY }
-    });
+    const res = await fetch(`/api/fixtures`);
     const data = await res.json();
 
     if(!data.response || !data.response.length) {
