@@ -639,8 +639,8 @@ async function fetchGames() {
     renderGames(LIVE_GAMES);
     startTicker(LIVE_GAMES);
 
-    // Atualiza a cada 60s
-    setTimeout(() => fetchGames(), 60000);
+    // Atualiza a cada 5 minutos
+    setTimeout(() => fetchGames(), 5 * 60 * 1000);
 
   } catch(err) {
     console.error('[ICE] Erro:', err);
