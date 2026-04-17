@@ -96,11 +96,15 @@ html, body { width: 100%; min-height: 100vh; background: var(--bg); color: var(-
 .game-card.featured::before { background: var(--ice); }
 .game-comp { background: rgba(77,200,232,0.08); color: var(--ice-dim); font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; width: fit-content; font-family: var(--font-display); }
 .game-card.featured .game-comp { background: rgba(77,200,232,0.15); color: var(--ice); }
-.game-teams { display: flex; flex-direction: column; gap: 4px; }
+.game-teams { display: flex; flex-direction: column; gap: 6px; }
+.team-row { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.team-logo-sm { width: 18px; height: 18px; object-fit: contain; flex-shrink: 0; }
 .team-name { color: var(--text); font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.vs-small { color: var(--text-muted); font-size: 9px; letter-spacing: 2px; font-family: var(--font-display); }
-.game-time { color: var(--text-dim); font-size: 10px; font-family: var(--font-body); }
+.vs-small { color: var(--text-muted); font-size: 9px; letter-spacing: 2px; font-family: var(--font-display); padding-left: 25px; }
+.game-time { color: var(--text-dim); font-size: 10px; font-family: var(--font-body); display: flex; align-items: center; gap: 6px; }
 .game-time-val { color: var(--ice); font-weight: 500; }
+.live-badge { color: #22d67a; font-size: 9px; letter-spacing: 1.5px; font-family: var(--font-display); animation: pulse 1.2s ease-in-out infinite; }
+.game-card.finished { pointer-events: none; }
 .use-btn { background: rgba(77,200,232,0.1); border: 1px solid rgba(77,200,232,0.2); border-radius: 6px; color: var(--ice); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; padding: 5px 0; text-align: center; font-family: var(--font-display); cursor: pointer; transition: background 0.2s; width: 100%; }
 .use-btn:hover { background: rgba(77,200,232,0.22); }
 
@@ -501,47 +505,196 @@ function clearAll(){
 }
 
 // ════════════════════════════════
-// GAMES
+// GAMES — API-Football ao vivo
 // ════════════════════════════════
-const GAMES=[
-  {comp:'Champions',    home:'Real Madrid',  away:'Arsenal',      time:'21:00',fileA:'real-madrid',       fileB:'arsenal',          featured:true},
-  {comp:'Libertadores', home:'Flamengo',     away:'Fluminense',   time:'19:30',fileA:'flamengo',          fileB:'fluminense',        featured:false},
-  {comp:'Premier',      home:'Man City',     away:'Liverpool',    time:'16:30',fileA:'man-city',          fileB:'liverpool',         featured:false},
-  {comp:'La Liga',      home:'Barcelona',    away:'Atletico',     time:'21:00',fileA:'barcelona',         fileB:'atletico-madrid',   featured:false},
-  {comp:'Serie A BR',   home:'Palmeiras',    away:'Corinthians',  time:'20:00',fileA:'palmeiras',         fileB:'corinthians',       featured:false},
-  {comp:'Bundesliga',   home:'Bayern',       away:'Dortmund',     time:'15:30',fileA:'bayern-munich',     fileB:'borussia-dortmund', featured:false},
-  {comp:'Serie A IT',   home:'Inter Milan',  away:'Juventus',     time:'17:00',fileA:'inter-milan',       fileB:'juventus',          featured:false},
-  {comp:'Ligue 1',      home:'PSG',          away:'Lyon',         time:'20:45',fileA:'paris-saint-germain',fileB:'lyon',             featured:false},
-  {comp:'Libertadores', home:'Penarol',      away:'Platense',     time:'18:00',fileA:'penarol',           fileB:'platense',          featured:false},
-  {comp:'Libertadores', home:'Boca Juniors', away:'River Plate',  time:'22:00',fileA:'boca-juniors',      fileB:'river-plate',       featured:false},
-];
+const API_KEY = '17ce43bae0fb41017db59a595c23be9e';
+const API_BASE = 'https://v3.football.api-sports.io';
 
-let ti=0;
-setInterval(()=>{
-  const g=GAMES[ti%GAMES.length];
-  document.getElementById('ticker-text').innerHTML=`<strong>${g.home}</strong> vs ${g.away} &nbsp;·&nbsp; ${g.time}`;
-  ti++;
-},4000);
+// Ligas prioritárias em ordem de relevância
+const PRIORITY_LEAGUES = [2,3,39,140,71,78,135,61,73,13,11,9,253,848];
+// 2=Champions, 3=Europa League, 39=Premier, 140=La Liga, 71=Brasileirao,
+// 78=Bundesliga, 135=Serie A IT, 61=Ligue 1, 73=Sul-Americana,
+// 13=Libertadores, 11=Copa Libertadores, 9=Copa do Brasil,
+// 253=MLS, 848=UEFA Conference
 
-document.getElementById('games-grid').innerHTML=GAMES.map((g,i)=>`
-  <div class="game-card${g.featured?' featured':''}">
-    <div class="game-comp">${g.comp}</div>
-    <div class="game-teams">
-      <div class="team-name">${g.home}</div>
-      <div class="vs-small">vs</div>
-      <div class="team-name">${g.away}</div>
-    </div>
-    <div class="game-time"><span class="game-time-val">${g.time}</span> · Hoje</div>
-    <button class="use-btn" onclick="useGame(${i})">Usar</button>
-  </div>`).join('');
+let LIVE_GAMES = [];
+let tickerIdx = 0;
+let tickerInterval = null;
 
-function useGame(i){
-  const g=GAMES[i];
-  pick('a',g.fileA,g.home);
-  pick('b',g.fileB,g.away);
-  showToast('Jogo selecionado!');
-  document.querySelector('.generator').scrollIntoView({behavior:'smooth',block:'start'});
+function formatTime(dateStr, status) {
+  if(status === 'FT' || status === 'AET' || status === 'PEN') return 'Encerrado';
+  if(status === 'HT') return 'Intervalo';
+  if(['1H','2H','ET','P'].includes(status)) return 'Ao vivo';
+  if(!dateStr) return '--:--';
+  const d = new Date(dateStr);
+  return d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit', timeZone:'America/Sao_Paulo'});
 }
+
+function isFinished(status) {
+  return ['FT','AET','PEN','AWD','WO'].includes(status);
+}
+
+function isLive(status) {
+  return ['1H','2H','ET','P','HT','LIVE'].includes(status);
+}
+
+function findLocalLogo(teamName) {
+  const n = norm(teamName);
+  const found = TEAMS.find(t => norm(t.n) === n || norm(t.n).includes(n) || n.includes(norm(t.n)));
+  return found ? `logos/${found.file}.png` : null;
+}
+
+function renderGames(games) {
+  const grid = document.getElementById('games-grid');
+  if(!games.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);font-family:var(--font-display);font-size:10px;letter-spacing:2px;padding:32px;">Nenhum jogo encontrado para hoje</div>`;
+    return;
+  }
+
+  grid.innerHTML = games.map((g, i) => {
+    const finished = isFinished(g.status);
+    const live = isLive(g.status);
+    const timeLabel = formatTime(g.date, g.status);
+    const score = (g.homeScore !== null && g.awayScore !== null) ? `${g.homeScore} - ${g.awayScore}` : '';
+    const localLogoA = findLocalLogo(g.home);
+    const localLogoB = findLocalLogo(g.away);
+    const logoA = localLogoA || g.logoA;
+    const logoB = localLogoB || g.logoB;
+
+    return `
+    <div class="game-card${i===0&&!finished?' featured':''} ${finished?'finished':''}" style="${finished?'filter:grayscale(1);opacity:0.55;':''}">
+      <div class="game-comp">${g.league}</div>
+      <div class="game-teams">
+        <div class="team-row">
+          <img class="team-logo-sm" src="${logoA}" onerror="this.style.display='none'" alt=""/>
+          <span class="team-name">${g.home}</span>
+        </div>
+        <div class="vs-small">${score || 'vs'}</div>
+        <div class="team-row">
+          <img class="team-logo-sm" src="${logoB}" onerror="this.style.display='none'" alt=""/>
+          <span class="team-name">${g.away}</span>
+        </div>
+      </div>
+      <div class="game-time">
+        ${live ? '<span class="live-badge">● AO VIVO</span>' : `<span class="game-time-val">${timeLabel}</span>`}
+        ${score && !live ? `<span style="color:var(--text-dim);margin-left:4px;">${score}</span>` : ''}
+      </div>
+      ${!finished ? `<button class="use-btn" onclick="useGame(${i})">Usar</button>` : `<div style="text-align:center;color:var(--text-muted);font-size:9px;letter-spacing:1px;font-family:var(--font-display);">Encerrado</div>`}
+    </div>`;
+  }).join('');
+}
+
+function startTicker(games) {
+  if(tickerInterval) clearInterval(tickerInterval);
+  if(!games.length) return;
+  tickerIdx = 0;
+  const active = games.filter(g => !isFinished(g.status));
+  const pool = active.length ? active : games;
+  function tick() {
+    const g = pool[tickerIdx % pool.length];
+    const live = isLive(g.status);
+    document.getElementById('ticker-text').innerHTML =
+      `${live ? '<span style="color:#22d67a">●</span> ' : ''}<strong>${g.home}</strong> vs ${g.away} &nbsp;·&nbsp; ${formatTime(g.date, g.status)}`;
+    tickerIdx++;
+  }
+  tick();
+  tickerInterval = setInterval(tick, 4000);
+}
+
+async function fetchGames() {
+  const grid = document.getElementById('games-grid');
+  grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--text-dim);font-family:var(--font-display);font-size:10px;letter-spacing:3px;padding:32px;">
+    <div style="animation:pulse 1s infinite;display:inline-block;">Carregando jogos...</div>
+  </div>`;
+
+  const today = new Date().toISOString().split('T')[0];
+
+  try {
+    const res = await fetch(`${API_BASE}/fixtures?date=${today}&timezone=America/Sao_Paulo`, {
+      headers: { 'x-apisports-key': API_KEY }
+    });
+    const data = await res.json();
+
+    if(!data.response || !data.response.length) {
+      renderGames([]);
+      return;
+    }
+
+    // Filtra e ordena por liga prioritária depois por horário
+    const fixtures = data.response;
+    const prioritized = [];
+    const rest = [];
+
+    fixtures.forEach(f => {
+      const leagueId = f.league.id;
+      const idx = PRIORITY_LEAGUES.indexOf(leagueId);
+      if(idx !== -1) prioritized.push({...f, _prio: idx});
+      else rest.push({...f, _prio: 999});
+    });
+
+    prioritized.sort((a,b) => {
+      if(a._prio !== b._prio) return a._prio - b._prio;
+      return new Date(a.fixture.date) - new Date(b.fixture.date);
+    });
+
+    const top10 = prioritized.slice(0, 10);
+
+    LIVE_GAMES = top10.map(f => ({
+      home: f.teams.home.name,
+      away: f.teams.away.name,
+      logoA: f.teams.home.logo,
+      logoB: f.teams.away.logo,
+      league: f.league.name.replace('UEFA Champions League','Champions').replace('Copa Libertadores','Libertadores').replace('Premier League','Premier').replace('Brasileirão Série A','Série A').replace('Bundesliga','Bundesliga').replace('Serie A','Serie A IT').replace('Ligue 1','Ligue 1').replace('Copa Sudamericana','Sul-Americana'),
+      date: f.fixture.date,
+      status: f.fixture.status.short,
+      homeScore: f.goals.home,
+      awayScore: f.goals.away,
+    }));
+
+    renderGames(LIVE_GAMES);
+    startTicker(LIVE_GAMES);
+
+    // Atualiza ao vivo a cada 60s
+    setTimeout(() => fetchGames(), 60000);
+
+  } catch(err) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);font-family:var(--font-display);font-size:10px;letter-spacing:2px;padding:32px;">Erro ao carregar jogos. Tente recarregar.</div>`;
+    console.error(err);
+  }
+}
+
+function useGame(i) {
+  const g = LIVE_GAMES[i];
+  if(!g) return;
+  const localA = findLocalLogo(g.home);
+  const localB = findLocalLogo(g.away);
+
+  const fileA = localA ? localA.replace('logos/','').replace('.png','') : null;
+  const fileB = localB ? localB.replace('logos/','').replace('.png','') : null;
+
+  if(fileA) pick('a', fileA, g.home);
+  else pickByUrl('a', g.logoA, g.home);
+
+  if(fileB) pick('b', fileB, g.away);
+  else pickByUrl('b', g.logoB, g.away);
+
+  showToast('Jogo selecionado!');
+  document.querySelector('.generator').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function pickByUrl(side, url, name) {
+  const slot = document.getElementById(`slot-${side}`);
+  slot.innerHTML = `<img src="${url}" onerror="this.style.opacity='0.15'" alt="${name}"/><div class="shield-team-name">${name}</div>`;
+  slot.classList.add('has-logo');
+  document.getElementById(`search-${side}`).value = name;
+  document.getElementById(`results-${side}`).classList.remove('open');
+  if(side==='a') selA={file:null, name, url};
+  else selB={file:null, name, url};
+  document.getElementById('btn-gen').disabled = !(selA && selB);
+}
+
+// Inicia
+fetchGames();
 
 // ════════════════════════════════
 // IMAGE 512x368
