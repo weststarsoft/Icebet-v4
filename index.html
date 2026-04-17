@@ -72,7 +72,7 @@ html, body { width: 100%; min-height: 100vh; background: var(--bg); color: var(-
 .logo-wrap { position: absolute; left: 50%; transform: translateX(-50%); top: 0; z-index: 10; cursor: pointer; text-decoration: none; display: flex; align-items: flex-start; justify-content: center; }
 .logo-wrap:hover .logo-img { filter: drop-shadow(0 0 12px rgba(77,200,232,0.6)) brightness(1.08); }
 .hex-base-bg { display: block; width: 88px; height: 94px; }
-.logo-img { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 68px; height: 68px; object-fit: contain; filter: drop-shadow(0 4px 16px rgba(77,200,232,0.25)); transition: filter 0.25s; }
+.logo-img { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 78px; height: 78px; object-fit: contain; filter: drop-shadow(0 4px 16px rgba(77,200,232,0.25)); transition: filter 0.25s; }
 .topbar-right { display: flex; align-items: center; gap: 14px; flex: 1; justify-content: flex-end; }
 .status-chip { display: flex; align-items: center; gap: 6px; background: rgba(10,22,40,0.8); border: 1px solid var(--border); border-radius: 20px; padding: 5px 14px 5px 10px; }
 .green-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s ease-in-out infinite; }
@@ -561,15 +561,30 @@ function generateImage(){
   iA.src=selA.url; iB.src=selB.url;
 }
 
-function draw(ctx,iA,iB){
-  const W=512,H=368,S=120,cy=H/2;
-  if(!iA._e) ctx.drawImage(iA, W*0.27-S/2, cy-S/2, S, S);
+function drawShield(ctx, img, x, y, maxSize) {
+  if (img._e) return;
+  const ratio = img.naturalWidth / img.naturalHeight;
+  let w, h;
+  if (ratio >= 1) { w = maxSize; h = maxSize / ratio; }
+  else            { h = maxSize; w = maxSize * ratio; }
+  // centraliza dentro do box de 70x70
+  const dx = x + (maxSize - w) / 2;
+  const dy = y + (maxSize - h) / 2;
+  ctx.drawImage(img, dx, dy, w, h);
+}
+
+function draw(ctx, iA, iB){
+  const S=70;
+  // Escudo 1 — Time da Casa: X:302 Y:98
+  drawShield(ctx, iA, 302, 98, S);
+  // VS — X:386 Y:133 (centro vertical do escudo)
   ctx.fillStyle='#111111';
-  ctx.font='bold 24px Arial,sans-serif';
+  ctx.font='bold 13px Arial,sans-serif';
   ctx.textAlign='center';
   ctx.textBaseline='middle';
-  ctx.fillText('vs',W/2,cy);
-  if(!iB._e) ctx.drawImage(iB, W*0.73-S/2, cy-S/2, S, S);
+  ctx.fillText('vs', 386, 133);
+  // Escudo 2 — Time Visitante: X:404 Y:98
+  drawShield(ctx, iB, 404, 98, S);
 }
 
 function downloadImage(){
