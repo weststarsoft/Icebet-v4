@@ -603,46 +603,33 @@ function startTicker(games) {
 
 async function fetchGames() {
   const grid = document.getElementById('games-grid');
-  grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--text-dim);font-family:var(--font-display);font-size:10px;letter-spacing:3px;padding:32px;">
-    <div style="animation:pulse 1s infinite;display:inline-block;">Carregando jogos...</div>
-  </div>`;
-
-  const today = new Date().toISOString().split('T')[0];
+  grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--text-dim);font-family:var(--font-display);font-size:10px;letter-spacing:3px;padding:32px;animation:pulse 1s infinite;">Carregando jogos...</div>`;
 
   try {
     const res = await fetch(`/api/fixtures`);
     const data = await res.json();
 
+    console.log('[ICE] API response:', data);
+
     if(!data.response || !data.response.length) {
-      renderGames([]);
+      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);font-family:var(--font-display);font-size:10px;letter-spacing:2px;padding:32px;">Nenhum jogo encontrado para hoje</div>`;
       return;
     }
 
-    // Filtra e ordena por liga prioritária depois por horário
-    const fixtures = data.response;
-    const prioritized = [];
-    const rest = [];
-
-    fixtures.forEach(f => {
-      const leagueId = f.league.id;
-      const idx = PRIORITY_LEAGUES.indexOf(leagueId);
-      if(idx !== -1) prioritized.push({...f, _prio: idx});
-      else rest.push({...f, _prio: 999});
-    });
-
-    prioritized.sort((a,b) => {
-      if(a._prio !== b._prio) return a._prio - b._prio;
-      return new Date(a.fixture.date) - new Date(b.fixture.date);
-    });
-
-    const top10 = prioritized.slice(0, 10);
-
-    LIVE_GAMES = top10.map(f => ({
+    LIVE_GAMES = data.response.map(f => ({
       home: f.teams.home.name,
       away: f.teams.away.name,
       logoA: f.teams.home.logo,
       logoB: f.teams.away.logo,
-      league: f.league.name.replace('UEFA Champions League','Champions').replace('Copa Libertadores','Libertadores').replace('Premier League','Premier').replace('Brasileirão Série A','Série A').replace('Bundesliga','Bundesliga').replace('Serie A','Serie A IT').replace('Ligue 1','Ligue 1').replace('Copa Sudamericana','Sul-Americana'),
+      league: (f.league.name||'')
+        .replace('UEFA Champions League','Champions')
+        .replace('Copa Libertadores','Libertadores')
+        .replace('Premier League','Premier')
+        .replace(/Brasileir[aã]o S[eé]rie A/,'Série A')
+        .replace('Bundesliga','Bundesliga')
+        .replace('Ligue 1','Ligue 1')
+        .replace('Copa Sudamericana','Sul-Americana')
+        .replace('Copa Do Brasil','Copa BR'),
       date: f.fixture.date,
       status: f.fixture.status.short,
       homeScore: f.goals.home,
@@ -652,12 +639,12 @@ async function fetchGames() {
     renderGames(LIVE_GAMES);
     startTicker(LIVE_GAMES);
 
-    // Atualiza ao vivo a cada 60s
+    // Atualiza a cada 60s
     setTimeout(() => fetchGames(), 60000);
 
   } catch(err) {
+    console.error('[ICE] Erro:', err);
     grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);font-family:var(--font-display);font-size:10px;letter-spacing:2px;padding:32px;">Erro ao carregar jogos. Tente recarregar.</div>`;
-    console.error(err);
   }
 }
 
