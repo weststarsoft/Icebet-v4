@@ -10,8 +10,8 @@ export default async function handler(req, res) {
   const today = `${brt.getFullYear()}-${pad(brt.getMonth()+1)}-${pad(brt.getDate())}`;
   const nowTs = Date.now();
 
-  // Cache de 5 minutos por dia — só chama a API se expirou ou virou o dia
-  const CACHE_TTL = 5 * 60 * 1000; // 5 min
+  // Cache de 30 minutos — 100 req/dia = ~3 atualizações/hora, suficiente
+  const CACHE_TTL = 30 * 60 * 1000;
   if (cache.data && cache.date === today && (nowTs - cache.ts) < CACHE_TTL) {
     return res.status(200).json({ ...cache.data, cached: true });
   }
@@ -24,6 +24,10 @@ export default async function handler(req, res) {
       { headers: { 'x-apisports-key': '17ce43bae0fb41017db59a595c23be9e' } }
     );
     const d = await r.json();
+    // Se a API retornar erro de limite, lança exceção
+    if (d.errors && (d.errors.requests || d.errors.token)) {
+      throw new Error('API limit: ' + JSON.stringify(d.errors));
+    }
     return d.response || [];
   }
 
@@ -44,14 +48,14 @@ export default async function handler(req, res) {
       .slice(0, 10);
 
     const result = { response: sorted, date: today, total: fixtures.length };
-
-    // Salva cache
     cache = { data: result, date: today, ts: nowTs };
-
     res.status(200).json(result);
+
   } catch (err) {
-    // Se falhar, retorna cache antigo se existir
-    if (cache.data) return res.status(200).json({ ...cache.data, cached: true, stale: true });
+    // Retorna cache antigo se existir, mesmo expirado
+    if (cache.data) {
+      return res.status(200).json({ ...cache.data, cached: true, stale: true });
+    }
     res.status(500).json({ error: err.message });
   }
 }
