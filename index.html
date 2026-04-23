@@ -639,8 +639,8 @@ async function fetchGames() {
     renderGames(LIVE_GAMES);
     startTicker(LIVE_GAMES);
 
-    // Atualiza a cada 5 minutos
-    setTimeout(() => fetchGames(), 5 * 60 * 1000);
+    // Atualiza a cada 30 minutos (alinhado com cache do servidor)
+    setTimeout(() => fetchGames(), 30 * 60 * 1000);
 
   } catch(err) {
     console.error('[ICE] Erro:', err);
@@ -689,7 +689,7 @@ function generateImage(){
   const cv=document.getElementById('preview-canvas');
   const ctx=cv.getContext('2d');
   cv.width=512; cv.height=368;
-  ctx.fillStyle='#ffffff';
+  ctx.fillStyle='#161e3f';
   ctx.fillRect(0,0,512,368);
 
   const iA=new Image(); iA.crossOrigin='anonymous';
@@ -718,7 +718,7 @@ function draw(ctx, iA, iB){
   // Escudo 1 — Time da Casa: X:302 Y:98
   drawShield(ctx, iA, 302, 98, S);
   // VS — X:386 Y:133 (centro vertical do escudo)
-  ctx.fillStyle='#111111';
+  ctx.fillStyle='#ffffff';
   ctx.font='bold 13px Arial,sans-serif';
   ctx.textAlign='center';
   ctx.textBaseline='middle';
