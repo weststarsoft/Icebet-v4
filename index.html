@@ -5,191 +5,219 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>ICE.BET — Gerador de Confrontos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
 <style>
+/* ─── VARIÁVEIS ─────────────────────────────────── */
 :root {
-  --ice: #4dc8e8;
-  --ice-dim: #2a7a95;
-  --ice-glow: rgba(77,200,232,0.18);
-  --bg: #06101c;
-  --bg2: #0a1628;
-  --bg3: #0d1e35;
-  --bg4: #112b48;
-  --border: #1a3a5c;
+  --ice:        #4dc8e8;
+  --ice-dim:    #2a7a95;
+  --ice-glow:   rgba(77,200,232,0.15);
+  --bg:         #06101c;
+  --bg2:        #0a1628;
+  --bg3:        #0d1e35;
+  --bg4:        #112b48;
+  --border:     #1a3a5c;
   --border-ice: rgba(77,200,232,0.35);
-  --text: #e0eaf5;
-  --text-dim: #5a7a9a;
+  --text:       #e0eaf5;
+  --text-dim:   #5a7a9a;
   --text-muted: #2a4a6a;
-  --green: #22d67a;
-  --font-display: 'Orbitron', monospace;
-  --font-ui: 'Rajdhani', sans-serif;
-  --font-body: 'Inter', sans-serif;
+  --green:      #22d67a;
+  --fd:         'Orbitron', monospace;
+  --fu:         'Rajdhani', sans-serif;
+  --fb:         'Inter', sans-serif;
 }
+
+/* ─── RESET ──────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; min-height: 100vh; background: var(--bg); color: var(--text); font-family: var(--font-ui); overflow-x: hidden; }
+html, body { width: 100%; min-height: 100vh; background: var(--bg); color: var(--text); font-family: var(--fu); overflow-x: hidden; }
 
-/* PORTAL */
-#portal { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: var(--bg); }
-#portal.done { pointer-events: none; animation: portalFade 0.5s 0.2s ease forwards; }
-@keyframes portalFade { to { opacity: 0; } }
-.portal-halves { position: relative; width: 220px; height: 220px; }
-.portal-half { position: absolute; top: 0; width: 110px; height: 220px; overflow: hidden; }
-.portal-half.left { left: 0; }
-.portal-half.right { right: 0; }
-.portal-half svg { position: absolute; top: 0; width: 220px; height: 220px; }
-.portal-half.left svg { left: 0; }
-.portal-half.right svg { left: -110px; }
-.portal-half.left.open { animation: slideLeft 0.7s 1.2s cubic-bezier(0.76,0,0.24,1) forwards; }
-.portal-half.right.open { animation: slideRight 0.7s 1.2s cubic-bezier(0.76,0,0.24,1) forwards; }
-@keyframes slideLeft { to { transform: translateX(-140%); } }
-@keyframes slideRight { to { transform: translateX(140%); } }
-.portal-glow { position: absolute; inset: -20px; border-radius: 50%; background: radial-gradient(circle, rgba(77,200,232,0.2) 0%, transparent 70%); animation: glowPulse 1s ease-in-out infinite; }
-@keyframes glowPulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
-.portal-scan { position: absolute; bottom: -40px; left: 50%; transform: translateX(-50%); color: var(--ice); font-family: var(--font-display); font-size: 9px; letter-spacing: 4px; text-transform: uppercase; opacity: 0; animation: scanIn 0.5s 0.3s ease forwards; white-space: nowrap; }
-@keyframes scanIn { to { opacity: 0.7; } }
+/* ─── BACKGROUND ─────────────────────────────────── */
+.bg-img     { position: fixed; inset: 0; background: url('Background_2.png') center top / cover no-repeat; z-index: 0; pointer-events: none; }
+.bg-overlay { position: fixed; inset: 0; background: linear-gradient(180deg, rgba(6,16,28,.55) 0%, rgba(6,16,28,.78) 45%, rgba(6,16,28,.95) 100%); z-index: 0; pointer-events: none; }
+.bg-grid    { position: fixed; inset: 0; background-image: linear-gradient(rgba(77,200,232,.03) 1px,transparent 1px), linear-gradient(90deg,rgba(77,200,232,.03) 1px,transparent 1px); background-size: 48px 48px; z-index: 0; pointer-events: none; }
 
-/* APP */
-#app { opacity: 0; animation: appReveal 0.8s 2s ease forwards; min-height: 100vh; }
-@keyframes appReveal { to { opacity: 1; } }
-#app::before { content: ''; position: fixed; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(77,200,232,0.012) 3px, rgba(77,200,232,0.012) 4px); pointer-events: none; z-index: 1000; }
+/* ─── SCAN LINES ─────────────────────────────────── */
+#app::before { content:''; position:fixed; inset:0; background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(77,200,232,.012) 3px,rgba(77,200,232,.012) 4px); pointer-events:none; z-index:1000; }
 
-/* TOPBAR */
-.topbar { position: sticky; top: 0; z-index: 100; height: 64px; background: linear-gradient(90deg, #0a1628 0%, #0f2540 50%, #0a1628 100%); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; }
-.topbar::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent 0%, var(--ice) 50%, transparent 100%); opacity: 0.5; }
-.topbar-left { display: flex; align-items: center; gap: 20px; flex: 1; }
-.hamburger { display: flex; flex-direction: column; gap: 5px; cursor: pointer; padding: 6px; border-radius: 6px; transition: background 0.2s; }
-.hamburger:hover { background: rgba(77,200,232,0.08); }
-.hamburger span { display: block; height: 1.5px; background: var(--ice); border-radius: 2px; transition: width 0.2s; }
-.hamburger span:nth-child(1) { width: 22px; }
-.hamburger span:nth-child(2) { width: 14px; }
-.hamburger span:nth-child(3) { width: 22px; }
-.hamburger:hover span:nth-child(2) { width: 22px; }
-.live-ticker { display: flex; align-items: center; gap: 8px; background: rgba(10,22,40,0.8); border: 1px solid var(--border); border-radius: 20px; padding: 5px 14px 5px 10px; }
-.live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ice); animation: pulse 1.5s ease-in-out infinite; }
-@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.8)} }
-.live-text { color: var(--text-dim); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; font-family: var(--font-ui); }
-.live-text strong { color: var(--ice); font-weight: 600; }
-.logo-wrap { position: absolute; left: 50%; transform: translateX(-50%); top: 0; z-index: 10; cursor: pointer; text-decoration: none; display: flex; align-items: flex-start; justify-content: center; }
-.logo-wrap:hover .logo-img { filter: drop-shadow(0 0 12px rgba(77,200,232,0.6)) brightness(1.08); }
-.hex-base-bg { display: block; width: 88px; height: 94px; }
-.logo-img { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 78px; height: 78px; object-fit: contain; filter: drop-shadow(0 4px 16px rgba(77,200,232,0.25)); transition: filter 0.25s; }
-.topbar-right { display: flex; align-items: center; gap: 14px; flex: 1; justify-content: flex-end; }
-.status-chip { display: flex; align-items: center; gap: 6px; background: rgba(10,22,40,0.8); border: 1px solid var(--border); border-radius: 20px; padding: 5px 14px 5px 10px; }
-.green-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s ease-in-out infinite; }
-.status-text { color: var(--text-dim); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; }
-.icon-btn { width: 34px; height: 34px; border: 1px solid var(--border); border-radius: 8px; background: rgba(10,22,40,0.8); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
-.icon-btn:hover { border-color: var(--border-ice); background: var(--ice-glow); }
+/* ─── ANIMAÇÕES ──────────────────────────────────── */
+@keyframes pulse      { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.8)} }
+@keyframes glowPulse  { 0%,100%{opacity:.5} 50%{opacity:1} }
+@keyframes slideLeft  { to{transform:translateX(-140%)} }
+@keyframes slideRight { to{transform:translateX(140%)} }
+@keyframes portalFade { to{opacity:0} }
+@keyframes scanIn     { to{opacity:.7} }
+@keyframes appReveal  { to{opacity:1} }
 
-/* PAGE */
-.page { max-width: 1100px; margin: 0 auto; padding: 40px 32px 60px; display: flex; flex-direction: column; gap: 40px; }
-.section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
-.section-label { color: var(--ice); font-family: var(--font-display); font-size: 9px; letter-spacing: 4px; text-transform: uppercase; white-space: nowrap; }
-.section-line { flex: 1; height: 1px; background: linear-gradient(90deg, var(--border) 0%, transparent 100%); }
+/* ─── PORTAL ─────────────────────────────────────── */
+#portal { position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; background:var(--bg); }
+#portal.done { pointer-events:none; animation:portalFade .5s .2s ease forwards; }
+.portal-halves { position:relative; width:220px; height:220px; }
+.portal-half { position:absolute; top:0; width:110px; height:220px; overflow:hidden; }
+.portal-half.left  { left:0; }
+.portal-half.right { right:0; }
+.portal-half svg { position:absolute; top:0; width:220px; height:220px; }
+.portal-half.left  svg { left:0; }
+.portal-half.right svg { left:-110px; }
+.portal-half.left.open  { animation:slideLeft  .7s 1.2s cubic-bezier(.76,0,.24,1) forwards; }
+.portal-half.right.open { animation:slideRight .7s 1.2s cubic-bezier(.76,0,.24,1) forwards; }
+.portal-glow { position:absolute; inset:-20px; border-radius:50%; background:radial-gradient(circle,rgba(77,200,232,.2) 0%,transparent 70%); animation:glowPulse 1s ease-in-out infinite; }
+.portal-scan { position:absolute; bottom:-40px; left:50%; transform:translateX(-50%); color:var(--ice); font-family:var(--fd); font-size:9px; letter-spacing:4px; text-transform:uppercase; opacity:0; animation:scanIn .5s .3s ease forwards; white-space:nowrap; }
 
-/* GAMES */
-.games-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-.game-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px; position: relative; overflow: hidden; transition: border-color 0.2s, background 0.2s, transform 0.15s; }
-.game-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--border); transition: background 0.2s; }
-.game-card:hover { border-color: var(--border-ice); background: var(--bg4); transform: translateY(-2px); }
-.game-card:hover::before { background: var(--ice); }
-.game-card.featured { border-color: rgba(77,200,232,0.4); }
-.game-card.featured::before { background: var(--ice); }
-.game-comp { background: rgba(77,200,232,0.08); color: var(--ice-dim); font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; width: fit-content; font-family: var(--font-display); }
-.game-card.featured .game-comp { background: rgba(77,200,232,0.15); color: var(--ice); }
-.game-teams { display: flex; flex-direction: column; gap: 6px; }
-.team-row { display: flex; align-items: center; gap: 7px; min-width: 0; }
-.team-logo-sm { width: 18px; height: 18px; object-fit: contain; flex-shrink: 0; }
-.team-name { color: var(--text); font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.vs-small { color: var(--text-muted); font-size: 9px; letter-spacing: 2px; font-family: var(--font-display); padding-left: 25px; }
-.game-time { color: var(--text-dim); font-size: 10px; font-family: var(--font-body); display: flex; align-items: center; gap: 6px; }
-.game-time-val { color: var(--ice); font-weight: 500; }
-.live-badge { color: #22d67a; font-size: 9px; letter-spacing: 1.5px; font-family: var(--font-display); animation: pulse 1.2s ease-in-out infinite; }
-.game-card.finished { pointer-events: none; }
-.use-btn { background: rgba(77,200,232,0.1); border: 1px solid rgba(77,200,232,0.2); border-radius: 6px; color: var(--ice); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; padding: 5px 0; text-align: center; font-family: var(--font-display); cursor: pointer; transition: background 0.2s; width: 100%; }
-.use-btn:hover { background: rgba(77,200,232,0.22); }
+/* ─── APP ────────────────────────────────────────── */
+#app { opacity:0; animation:appReveal .8s 2s ease forwards; min-height:100vh; position:relative; z-index:1; }
 
-/* GENERATOR */
-.generator { background: var(--bg3); border: 1px solid var(--border); border-radius: 14px; padding: 32px; position: relative; overflow: hidden; }
-.generator::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--ice), transparent); opacity: 0.6; }
-.gen-corner { position: absolute; width: 16px; height: 16px; border-color: var(--border-ice); border-style: solid; opacity: 0.6; }
-.gen-corner.tl { top: 12px; left: 12px; border-width: 1px 0 0 1px; }
-.gen-corner.tr { top: 12px; right: 12px; border-width: 1px 1px 0 0; }
-.gen-corner.bl { bottom: 12px; left: 12px; border-width: 0 0 1px 1px; }
-.gen-corner.br { bottom: 12px; right: 12px; border-width: 0 1px 1px 0; }
-.gen-layout { display: grid; grid-template-columns: 1fr auto 1fr; gap: 24px; align-items: start; }
-.team-panel { display: flex; flex-direction: column; gap: 14px; }
-.panel-label { color: var(--text-dim); font-size: 9px; letter-spacing: 3px; text-transform: uppercase; font-family: var(--font-display); }
-.shield-slot { background: var(--bg2); border: 1px dashed var(--border); border-radius: 12px; height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; transition: border-color 0.2s; }
-.shield-slot.has-logo { border-style: solid; border-color: var(--border-ice); background: var(--bg3); }
-.shield-slot img { width: 80px; height: 80px; object-fit: contain; }
-.shield-slot-label { color: var(--text-muted); font-size: 10px; letter-spacing: 1px; font-family: var(--font-body); }
-.shield-team-name { color: var(--text); font-size: 13px; font-weight: 600; text-align: center; padding: 0 8px; }
-.search-wrap { position: relative; }
-.search-input { width: 100%; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px 10px 36px; color: var(--text); font-size: 13px; font-family: var(--font-ui); outline: none; transition: border-color 0.2s; }
-.search-input:focus { border-color: var(--border-ice); }
-.search-input::placeholder { color: var(--text-muted); }
-.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px; pointer-events: none; }
-.results-list { display: none; flex-direction: column; gap: 4px; max-height: 200px; overflow-y: auto; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 6px; margin-top: 4px; }
-.results-list.open { display: flex; }
-.results-list::-webkit-scrollbar { width: 4px; }
-.results-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-.result-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; cursor: pointer; transition: background 0.15s; border: 1px solid transparent; }
-.result-item:hover { background: var(--bg3); border-color: var(--border); }
-.result-item img { width: 28px; height: 28px; object-fit: contain; flex-shrink: 0; }
-.result-name { color: var(--text); font-size: 13px; font-weight: 500; }
-.no-results { padding: 10px 12px; color: var(--text-muted); font-size: 12px; font-family: var(--font-body); }
-.vs-divider { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding-top: 50px; }
-.vs-line-v { width: 1px; height: 36px; background: linear-gradient(180deg, transparent, var(--border)); }
-.vs-line-v.bottom { background: linear-gradient(180deg, var(--border), transparent); }
-.vs-text { color: var(--ice); font-family: var(--font-display); font-size: 22px; font-weight: 700; letter-spacing: 6px; text-shadow: 0 0 20px rgba(77,200,232,0.4); }
-.gen-footer { margin-top: 28px; display: flex; gap: 12px; }
-.btn-generate { flex: 1; background: var(--ice); color: var(--bg); border: none; border-radius: 10px; padding: 14px 24px; font-family: var(--font-display); font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; cursor: pointer; transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
-.btn-generate:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(77,200,232,0.25); }
-.btn-generate:disabled { opacity: 0.3; cursor: not-allowed; transform: none; box-shadow: none; }
-.btn-secondary { background: transparent; border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; color: var(--text-dim); font-family: var(--font-display); font-size: 10px; letter-spacing: 2px; cursor: pointer; transition: border-color 0.2s, color 0.2s; white-space: nowrap; }
-.btn-secondary:hover { border-color: var(--border-ice); color: var(--ice); }
+/* ─── TOPBAR ─────────────────────────────────────── */
+.topbar { position:sticky; top:0; z-index:100; height:64px; background:linear-gradient(90deg,#0a1628 0%,#0f2540 50%,#0a1628 100%); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 32px; }
+.topbar::after { content:''; position:absolute; bottom:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--ice) 50%,transparent); opacity:.5; }
 
-/* MODAL */
-#preview-modal { display: none; position: fixed; inset: 0; background: rgba(6,16,28,0.92); z-index: 500; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
-#preview-modal.open { display: flex; }
-.modal-box { background: var(--bg3); border: 1px solid var(--border-ice); border-radius: 16px; padding: 32px; display: flex; flex-direction: column; gap: 20px; max-width: 600px; width: 90%; position: relative; }
-.modal-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--ice), transparent); border-radius: 16px 16px 0 0; }
-.modal-title { color: var(--text); font-family: var(--font-display); font-size: 11px; letter-spacing: 3px; text-transform: uppercase; }
-.preview-canvas-wrap { background: #161e3f; border-radius: 8px; overflow: hidden; }
-#preview-canvas { display: block; width: 100%; height: auto; }
-.dim-label { color: var(--text-muted); font-size: 10px; letter-spacing: 1px; font-family: var(--font-body); text-align: center; }
-.modal-actions { display: flex; gap: 10px; }
-.btn-download { flex: 1; background: var(--ice); color: var(--bg); border: none; border-radius: 8px; padding: 12px; font-family: var(--font-display); font-size: 10px; font-weight: 700; letter-spacing: 3px; cursor: pointer; transition: opacity 0.2s; }
-.btn-download:hover { opacity: 0.85; }
-.btn-close-modal { background: transparent; border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; color: var(--text-dim); font-family: var(--font-display); font-size: 10px; letter-spacing: 2px; cursor: pointer; transition: border-color 0.2s; }
-.btn-close-modal:hover { border-color: var(--border-ice); }
+.topbar-left  { display:flex; align-items:center; gap:20px; flex:1; }
+.topbar-right { display:flex; align-items:center; gap:14px; flex:1; justify-content:flex-end; }
 
-/* SIDEBAR */
-#sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: 280px; background: var(--bg3); border-right: 1px solid var(--border); z-index: 200; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.76,0,0.24,1); display: flex; flex-direction: column; padding: 80px 24px 32px; gap: 8px; }
-#sidebar.open { transform: translateX(0); }
-#sidebar::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 1px; background: linear-gradient(180deg, transparent, var(--ice) 50%, transparent); opacity: 0.3; }
-.sidebar-item { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 8px; color: var(--text-dim); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; font-family: var(--font-display); cursor: pointer; transition: background 0.2s, color 0.2s; border: 1px solid transparent; }
-.sidebar-item:hover { background: var(--bg4); color: var(--ice); border-color: var(--border); }
-.sidebar-item svg { width: 16px; height: 16px; flex-shrink: 0; }
-#sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(6,16,28,0.7); z-index: 199; }
-#sidebar-overlay.open { display: block; }
+.hamburger { display:flex; flex-direction:column; gap:5px; cursor:pointer; padding:6px; border-radius:6px; transition:background .2s; }
+.hamburger:hover { background:rgba(77,200,232,.08); }
+.hamburger span { display:block; height:1.5px; background:var(--ice); border-radius:2px; transition:width .2s; }
+.hamburger span:nth-child(1) { width:22px; }
+.hamburger span:nth-child(2) { width:14px; }
+.hamburger span:nth-child(3) { width:22px; }
+.hamburger:hover span:nth-child(2) { width:22px; }
 
-/* BG */
-.bg-image { position: fixed; inset: 0; background-image: url('Background_2.png'); background-size: cover; background-position: center top; background-repeat: no-repeat; pointer-events: none; z-index: 0; }
-.bg-overlay { position: fixed; inset: 0; background: linear-gradient(180deg, rgba(6,16,28,0.55) 0%, rgba(6,16,28,0.75) 40%, rgba(6,16,28,0.92) 100%); pointer-events: none; z-index: 0; }
-.bg-grid { position: fixed; inset: 0; background-image: linear-gradient(rgba(77,200,232,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(77,200,232,0.03) 1px, transparent 1px); background-size: 48px 48px; pointer-events: none; z-index: 0; }
+.live-ticker { display:flex; align-items:center; gap:8px; background:rgba(10,22,40,.8); border:1px solid var(--border); border-radius:20px; padding:5px 14px 5px 10px; max-width:320px; overflow:hidden; }
+.live-dot { width:6px; height:6px; border-radius:50%; background:var(--ice); flex-shrink:0; animation:pulse 1.5s ease-in-out infinite; }
+.live-text { color:var(--text-dim); font-size:10px; letter-spacing:1.5px; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.live-text strong { color:var(--ice); font-weight:600; }
 
-/* TOAST */
-#toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--bg4); border: 1px solid var(--border-ice); border-radius: 8px; padding: 12px 24px; color: var(--ice); font-family: var(--font-display); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; z-index: 600; transition: transform 0.3s ease; pointer-events: none; }
-#toast.show { transform: translateX(-50%) translateY(0); }
+/* Logo centralizado */
+.logo-wrap { position:absolute; left:50%; transform:translateX(-50%); top:0; z-index:10; display:flex; align-items:flex-start; justify-content:center; text-decoration:none; }
+.logo-wrap:hover .logo-img { filter:drop-shadow(0 0 12px rgba(77,200,232,.6)) brightness(1.08); }
+.hex-base-bg { display:block; width:88px; height:94px; }
+.logo-img { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:78px; height:78px; object-fit:contain; filter:drop-shadow(0 4px 16px rgba(77,200,232,.25)); transition:filter .25s; }
+
+.status-chip { display:flex; align-items:center; gap:6px; background:rgba(10,22,40,.8); border:1px solid var(--border); border-radius:20px; padding:5px 14px 5px 10px; }
+.green-dot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:pulse 2s ease-in-out infinite; }
+.status-text { color:var(--text-dim); font-size:10px; letter-spacing:1.5px; text-transform:uppercase; }
+.icon-btn { width:34px; height:34px; border:1px solid var(--border); border-radius:8px; background:rgba(10,22,40,.8); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:border-color .2s,background .2s; }
+.icon-btn:hover { border-color:var(--border-ice); background:var(--ice-glow); }
+
+/* ─── SIDEBAR ────────────────────────────────────── */
+#sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(6,16,28,.7); z-index:199; }
+#sidebar-overlay.open { display:block; }
+#sidebar { position:fixed; top:0; left:0; bottom:0; width:280px; background:var(--bg3); border-right:1px solid var(--border); z-index:200; transform:translateX(-100%); transition:transform .3s cubic-bezier(.76,0,.24,1); display:flex; flex-direction:column; padding:80px 24px 32px; gap:8px; }
+#sidebar.open { transform:translateX(0); }
+#sidebar::after { content:''; position:absolute; top:0; right:0; bottom:0; width:1px; background:linear-gradient(180deg,transparent,var(--ice) 50%,transparent); opacity:.3; }
+.sidebar-item { display:flex; align-items:center; gap:14px; padding:12px 16px; border-radius:8px; color:var(--text-dim); font-size:13px; letter-spacing:2px; text-transform:uppercase; font-family:var(--fd); cursor:pointer; transition:background .2s,color .2s; border:1px solid transparent; }
+.sidebar-item:hover { background:var(--bg4); color:var(--ice); border-color:var(--border); }
+.sidebar-item svg { width:16px; height:16px; flex-shrink:0; }
+
+/* ─── PAGE ───────────────────────────────────────── */
+.page { max-width:1100px; margin:0 auto; padding:40px 32px 60px; display:flex; flex-direction:column; gap:40px; }
+.section-header { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+.section-label { color:var(--ice); font-family:var(--fd); font-size:9px; letter-spacing:4px; text-transform:uppercase; white-space:nowrap; }
+.section-line { flex:1; height:1px; background:linear-gradient(90deg,var(--border) 0%,transparent 100%); }
+
+/* ─── GAMES GRID ─────────────────────────────────── */
+.games-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; }
+
+.game-card { background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:14px; display:flex; flex-direction:column; gap:10px; position:relative; overflow:hidden; transition:border-color .2s,background .2s,transform .15s; cursor:pointer; }
+.game-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--border); transition:background .2s; }
+.game-card:hover:not(.finished) { border-color:var(--border-ice); background:var(--bg4); transform:translateY(-2px); }
+.game-card:hover:not(.finished)::before { background:var(--ice); }
+.game-card.featured { border-color:rgba(77,200,232,.4); }
+.game-card.featured::before { background:var(--ice); }
+.game-card.finished { filter:grayscale(1); opacity:.5; cursor:default; pointer-events:none; }
+
+.game-comp { background:rgba(77,200,232,.08); color:var(--ice-dim); font-size:8px; letter-spacing:1.5px; text-transform:uppercase; padding:3px 8px; border-radius:4px; width:fit-content; font-family:var(--fd); }
+.game-card.featured .game-comp { background:rgba(77,200,232,.15); color:var(--ice); }
+
+.game-teams { display:flex; flex-direction:column; gap:6px; }
+.team-row   { display:flex; align-items:center; gap:7px; min-width:0; }
+.team-logo-sm { width:18px; height:18px; object-fit:contain; flex-shrink:0; }
+.team-name  { color:var(--text); font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.vs-badge   { color:var(--text-muted); font-size:9px; letter-spacing:2px; font-family:var(--fd); padding-left:25px; }
+
+.game-meta  { display:flex; align-items:center; gap:6px; font-size:10px; font-family:var(--fb); }
+.game-time  { color:var(--ice); font-weight:500; }
+.game-score { color:var(--text-dim); }
+.live-badge { color:var(--green); font-size:9px; letter-spacing:1.5px; font-family:var(--fd); animation:pulse 1.2s ease-in-out infinite; }
+.ended-tag  { color:var(--text-muted); font-size:9px; letter-spacing:1px; font-family:var(--fd); }
+
+.use-btn { background:rgba(77,200,232,.1); border:1px solid rgba(77,200,232,.2); border-radius:6px; color:var(--ice); font-size:9px; letter-spacing:2px; text-transform:uppercase; padding:5px 0; text-align:center; font-family:var(--fd); cursor:pointer; transition:background .2s; }
+.use-btn:hover { background:rgba(77,200,232,.22); }
+
+/* ─── GENERATOR ──────────────────────────────────── */
+.generator { background:var(--bg3); border:1px solid var(--border); border-radius:14px; padding:32px; position:relative; overflow:hidden; }
+.generator::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--ice),transparent); opacity:.6; }
+.gen-corner { position:absolute; width:16px; height:16px; border-color:var(--border-ice); border-style:solid; opacity:.6; }
+.gen-corner.tl { top:12px; left:12px;   border-width:1px 0 0 1px; }
+.gen-corner.tr { top:12px; right:12px;  border-width:1px 1px 0 0; }
+.gen-corner.bl { bottom:12px; left:12px;  border-width:0 0 1px 1px; }
+.gen-corner.br { bottom:12px; right:12px; border-width:0 1px 1px 0; }
+
+.gen-layout { display:grid; grid-template-columns:1fr auto 1fr; gap:24px; align-items:start; }
+.team-panel { display:flex; flex-direction:column; gap:14px; }
+.panel-label { color:var(--text-dim); font-size:9px; letter-spacing:3px; text-transform:uppercase; font-family:var(--fd); }
+
+.shield-slot { background:var(--bg2); border:1px dashed var(--border); border-radius:12px; height:140px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; transition:border-color .2s; }
+.shield-slot.has-logo { border-style:solid; border-color:var(--border-ice); background:var(--bg3); }
+.shield-slot img { width:80px; height:80px; object-fit:contain; }
+.shield-slot-label { color:var(--text-muted); font-size:10px; letter-spacing:1px; font-family:var(--fb); }
+.shield-team-name  { color:var(--text); font-size:13px; font-weight:600; text-align:center; padding:0 8px; }
+
+.search-wrap { position:relative; }
+.search-input { width:100%; background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:10px 14px 10px 36px; color:var(--text); font-size:13px; font-family:var(--fu); outline:none; transition:border-color .2s; }
+.search-input:focus { border-color:var(--border-ice); }
+.search-input::placeholder { color:var(--text-muted); }
+.search-icon { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-muted); font-size:13px; pointer-events:none; }
+
+.results-list { display:none; flex-direction:column; gap:4px; max-height:200px; overflow-y:auto; background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:6px; margin-top:4px; }
+.results-list.open { display:flex; }
+.results-list::-webkit-scrollbar { width:4px; }
+.results-list::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+.result-item { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:6px; cursor:pointer; transition:background .15s; border:1px solid transparent; }
+.result-item:hover { background:var(--bg3); border-color:var(--border); }
+.result-item img { width:28px; height:28px; object-fit:contain; flex-shrink:0; }
+.result-name { color:var(--text); font-size:13px; font-weight:500; }
+.no-results  { padding:10px 12px; color:var(--text-muted); font-size:12px; font-family:var(--fb); }
+
+.vs-divider { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding-top:50px; }
+.vs-line-v  { width:1px; height:36px; background:linear-gradient(180deg,transparent,var(--border)); }
+.vs-line-v.bottom { background:linear-gradient(180deg,var(--border),transparent); }
+.vs-text    { color:var(--ice); font-family:var(--fd); font-size:22px; font-weight:700; letter-spacing:6px; text-shadow:0 0 20px rgba(77,200,232,.4); }
+
+.gen-footer { margin-top:28px; display:flex; gap:12px; }
+.btn-generate { flex:1; background:var(--ice); color:var(--bg); border:none; border-radius:10px; padding:14px 24px; font-family:var(--fd); font-size:11px; font-weight:700; letter-spacing:3px; text-transform:uppercase; cursor:pointer; transition:opacity .2s,transform .15s,box-shadow .2s; display:flex; align-items:center; justify-content:center; gap:10px; }
+.btn-generate:hover   { opacity:.9; transform:translateY(-1px); box-shadow:0 8px 24px rgba(77,200,232,.25); }
+.btn-generate:disabled { opacity:.3; cursor:not-allowed; transform:none; box-shadow:none; }
+.btn-secondary { background:transparent; border:1px solid var(--border); border-radius:10px; padding:14px 18px; color:var(--text-dim); font-family:var(--fd); font-size:10px; letter-spacing:2px; cursor:pointer; transition:border-color .2s,color .2s; white-space:nowrap; }
+.btn-secondary:hover { border-color:var(--border-ice); color:var(--ice); }
+
+/* ─── MODAL ──────────────────────────────────────── */
+#preview-modal { display:none; position:fixed; inset:0; background:rgba(6,16,28,.92); z-index:500; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+#preview-modal.open { display:flex; }
+.modal-box { background:var(--bg3); border:1px solid var(--border-ice); border-radius:16px; padding:32px; display:flex; flex-direction:column; gap:20px; max-width:600px; width:90%; position:relative; }
+.modal-box::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--ice),transparent); border-radius:16px 16px 0 0; }
+.modal-title { color:var(--text); font-family:var(--fd); font-size:11px; letter-spacing:3px; text-transform:uppercase; }
+.preview-canvas-wrap { background:#161e3f; border-radius:8px; overflow:hidden; }
+#preview-canvas { display:block; width:100%; height:auto; }
+.dim-label { color:var(--text-muted); font-size:10px; letter-spacing:1px; font-family:var(--fb); text-align:center; }
+.modal-actions { display:flex; gap:10px; }
+.btn-download { flex:1; background:var(--ice); color:var(--bg); border:none; border-radius:8px; padding:12px; font-family:var(--fd); font-size:10px; font-weight:700; letter-spacing:3px; cursor:pointer; transition:opacity .2s; }
+.btn-download:hover { opacity:.85; }
+.btn-close-modal { background:transparent; border:1px solid var(--border); border-radius:8px; padding:12px 16px; color:var(--text-dim); font-family:var(--fd); font-size:10px; letter-spacing:2px; cursor:pointer; transition:border-color .2s; }
+.btn-close-modal:hover { border-color:var(--border-ice); }
+
+/* ─── TOAST ──────────────────────────────────────── */
+#toast { position:fixed; bottom:32px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--bg4); border:1px solid var(--border-ice); border-radius:8px; padding:12px 24px; color:var(--ice); font-family:var(--fd); font-size:10px; letter-spacing:2px; text-transform:uppercase; z-index:600; transition:transform .3s ease; pointer-events:none; }
+#toast.show { transform:translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
-<div class="bg-image"></div>
+
+<!-- Background layers -->
+<div class="bg-img"></div>
 <div class="bg-overlay"></div>
 <div class="bg-grid"></div>
 
-<!-- PORTAL -->
+<!-- Portal de entrada -->
 <div id="portal">
   <div style="position:relative;">
     <div class="portal-glow"></div>
@@ -198,8 +226,8 @@ html, body { width: 100%; min-height: 100vh; background: var(--bg); color: var(-
         <svg viewBox="0 0 220 220" fill="none">
           <polygon points="110,10 196,57 196,163 110,210 24,163 24,57" fill="#0d1e35" stroke="#4dc8e8" stroke-width="1.5" stroke-opacity="0.6"/>
           <polygon points="110,22 184,63 184,157 110,198 36,157 36,63" fill="#0a1628"/>
-          <ellipse cx="80" cy="110" rx="24" ry="30" fill="#06101c"/>
-          <ellipse cx="80" cy="107" rx="14" ry="18" fill="white"/>
+          <ellipse cx="80"  cy="110" rx="24" ry="30" fill="#06101c"/>
+          <ellipse cx="80"  cy="107" rx="14" ry="18" fill="white"/>
           <ellipse cx="140" cy="110" rx="24" ry="30" fill="#06101c"/>
           <ellipse cx="140" cy="107" rx="14" ry="18" fill="white"/>
         </svg>
@@ -208,8 +236,8 @@ html, body { width: 100%; min-height: 100vh; background: var(--bg); color: var(-
         <svg viewBox="0 0 220 220" fill="none">
           <polygon points="110,10 196,57 196,163 110,210 24,163 24,57" fill="#0d1e35" stroke="#4dc8e8" stroke-width="1.5" stroke-opacity="0.6"/>
           <polygon points="110,22 184,63 184,157 110,198 36,157 36,63" fill="#0a1628"/>
-          <ellipse cx="80" cy="110" rx="24" ry="30" fill="#06101c"/>
-          <ellipse cx="80" cy="107" rx="14" ry="18" fill="white"/>
+          <ellipse cx="80"  cy="110" rx="24" ry="30" fill="#06101c"/>
+          <ellipse cx="80"  cy="107" rx="14" ry="18" fill="white"/>
           <ellipse cx="140" cy="110" rx="24" ry="30" fill="#06101c"/>
           <ellipse cx="140" cy="107" rx="14" ry="18" fill="white"/>
         </svg>
@@ -219,25 +247,42 @@ html, body { width: 100%; min-height: 100vh; background: var(--bg); color: var(-
   </div>
 </div>
 
-<!-- SIDEBAR -->
+<!-- Sidebar -->
 <div id="sidebar-overlay" onclick="closeSidebar()"></div>
 <div id="sidebar">
-  <div class="sidebar-item"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>Confrontos</div>
-  <div class="sidebar-item"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 1.5"/></svg>Ao Vivo</div>
-  <div class="sidebar-item"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M8 2l1.8 3.6L14 6.3l-3 2.9.7 4.1L8 11.2l-3.7 2.1.7-4.1-3-2.9 4.2-.7z"/></svg>Destaques</div>
-  <div class="sidebar-item"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6" cy="6" r="4"/><path d="M10 10l3 3"/></svg>Buscar Escudo</div>
+  <div class="sidebar-item" onclick="closeSidebar()">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+    Confrontos
+  </div>
+  <div class="sidebar-item">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 1.5"/></svg>
+    Ao Vivo
+  </div>
+  <div class="sidebar-item">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M8 2l1.8 3.6L14 6.3l-3 2.9.7 4.1L8 11.2l-3.7 2.1.7-4.1-3-2.9 4.2-.7z"/></svg>
+    Destaques
+  </div>
+  <div class="sidebar-item">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6" cy="6" r="4"/><path d="M10 10l3 3"/></svg>
+    Escudos
+  </div>
 </div>
 
-<!-- APP -->
+<!-- App -->
 <div id="app">
+
+  <!-- Topbar -->
   <header class="topbar">
     <div class="topbar-left">
-      <div class="hamburger" onclick="openSidebar()"><span></span><span></span><span></span></div>
+      <div class="hamburger" onclick="openSidebar()">
+        <span></span><span></span><span></span>
+      </div>
       <div class="live-ticker">
         <div class="live-dot"></div>
-        <div class="live-text" id="ticker-text"><strong>Real Madrid</strong> vs Arsenal &nbsp;·&nbsp; 21:00</div>
+        <div class="live-text" id="ticker-text">Carregando jogos...</div>
       </div>
     </div>
+
     <a class="logo-wrap" href="https://ice.bet.br/sports/" target="_blank" title="ICE.BET Esportes">
       <svg class="hex-base-bg" viewBox="0 0 88 94" fill="none">
         <polygon points="44,4 82,26 82,70 44,92 6,70 6,26" fill="#0d1e35" stroke="#4dc8e8" stroke-width="1" stroke-opacity="0.5"/>
@@ -245,21 +290,37 @@ html, body { width: 100%; min-height: 100vh; background: var(--bg); color: var(-
       </svg>
       <img class="logo-img" src="logos/icebet-logo.png" alt="ICE.BET"/>
     </a>
+
     <div class="topbar-right">
-      <div class="status-chip"><div class="green-dot"></div><span class="status-text">10 jogos ao vivo</span></div>
-      <div class="icon-btn"><svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="#4dc8e8" stroke-width="1.2"><circle cx="7.5" cy="7.5" r="5.5"/><path d="M7.5 4.5v3l2 1.5"/></svg></div>
+      <div class="status-chip">
+        <div class="green-dot"></div>
+        <span class="status-text" id="live-count">Ao vivo</span>
+      </div>
+      <div class="icon-btn" title="Horário">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="#4dc8e8" stroke-width="1.2">
+          <circle cx="7.5" cy="7.5" r="5.5"/><path d="M7.5 4.5v3l2 1.5"/>
+        </svg>
+      </div>
     </div>
   </header>
 
-  <main class="page" style="position:relative;z-index:1;">
+  <!-- Conteúdo -->
+  <main class="page">
+
+    <!-- Jogos do dia -->
     <section>
       <div class="section-header">
         <div class="section-label">Jogos do dia</div>
         <div class="section-line"></div>
       </div>
-      <div class="games-grid" id="games-grid"></div>
+      <div class="games-grid" id="games-grid">
+        <div style="grid-column:1/-1;text-align:center;color:var(--text-dim);font-family:var(--fd);font-size:10px;letter-spacing:3px;padding:32px;">
+          Carregando...
+        </div>
+      </div>
     </section>
 
+    <!-- Gerador -->
     <section>
       <div class="section-header">
         <div class="section-label">Gerador de confronto</div>
@@ -269,43 +330,55 @@ html, body { width: 100%; min-height: 100vh; background: var(--bg); color: var(-
         <div class="gen-corner tl"></div><div class="gen-corner tr"></div>
         <div class="gen-corner bl"></div><div class="gen-corner br"></div>
         <div class="gen-layout">
+
+          <!-- Time A -->
           <div class="team-panel">
             <div class="panel-label">Time da Casa</div>
-            <div class="shield-slot" id="slot-a"><div class="shield-slot-label">Selecione o time</div></div>
+            <div class="shield-slot" id="slot-a">
+              <div class="shield-slot-label">Selecione o time</div>
+            </div>
             <div class="search-wrap">
               <span class="search-icon">⌕</span>
               <input class="search-input" id="search-a" placeholder="Buscar time..." autocomplete="off" oninput="handleSearch('a')"/>
             </div>
             <div class="results-list" id="results-a"></div>
           </div>
+
+          <!-- VS -->
           <div class="vs-divider">
             <div class="vs-line-v"></div>
             <div class="vs-text">VS</div>
             <div class="vs-line-v bottom"></div>
           </div>
+
+          <!-- Time B -->
           <div class="team-panel">
             <div class="panel-label">Time Visitante</div>
-            <div class="shield-slot" id="slot-b"><div class="shield-slot-label">Selecione o time</div></div>
+            <div class="shield-slot" id="slot-b">
+              <div class="shield-slot-label">Selecione o time</div>
+            </div>
             <div class="search-wrap">
               <span class="search-icon">⌕</span>
               <input class="search-input" id="search-b" placeholder="Buscar time..." autocomplete="off" oninput="handleSearch('b')"/>
             </div>
             <div class="results-list" id="results-b"></div>
           </div>
+
         </div>
         <div class="gen-footer">
           <button class="btn-secondary" onclick="clearAll()">Limpar</button>
           <button class="btn-generate" id="btn-gen" onclick="generateImage()" disabled>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="12" height="12" rx="2"/><path d="M4 7h6M7 4v6"/></svg>
-            Gerar Imagem &nbsp;·&nbsp; 512 × 368 px
+            Gerar Imagem · 512 × 368 px
           </button>
         </div>
       </div>
     </section>
+
   </main>
 </div>
 
-<!-- MODAL -->
+<!-- Modal preview -->
 <div id="preview-modal">
   <div class="modal-box">
     <div class="modal-title">Preview · 512 × 368 px</div>
@@ -323,11 +396,12 @@ html, body { width: 100%; min-height: 100vh; background: var(--bg); color: var(-
 <div id="toast"></div>
 
 <script>
-// ════════════════════════════════════════════
-// BASE DE TIMES — mapeado para /logos/*.png
-// ════════════════════════════════════════════
+'use strict';
+
+// ══════════════════════════════════════════════
+// TIMES — base local /logos/
+// ══════════════════════════════════════════════
 const TEAMS = [
-  // Serie A Italiana
   {n:'AC Milan',file:'ac-milan'},{n:'Atalanta',file:'atalanta'},{n:'Bologna',file:'bologna'},
   {n:'Cagliari',file:'cagliari'},{n:'Como 1907',file:'como-1907'},{n:'Cremonese',file:'cremonese'},
   {n:'Fiorentina',file:'fiorentina'},{n:'Genoa',file:'genoa'},{n:'Inter Milan',file:'inter-milan'},
@@ -335,7 +409,6 @@ const TEAMS = [
   {n:'Napoli',file:'napoli'},{n:'Parma',file:'parma'},{n:'Pisa',file:'pisa'},
   {n:'Roma',file:'roma'},{n:'Sassuolo',file:'sassuolo'},{n:'Torino',file:'torino'},
   {n:'Udinese',file:'udinese'},{n:'Verona',file:'verona'},
-  // Bundesliga
   {n:'Augsburg',file:'augsburg'},{n:'Bayer Leverkusen',file:'bayer-leverkusen'},
   {n:'Bayern Munich',file:'bayern-munich'},{n:'Borussia Dortmund',file:'borussia-dortmund'},
   {n:'Borussia Monchengladbach',file:'borussia-monchengladbach'},{n:'Frankfurt',file:'frankfurt'},
@@ -343,7 +416,6 @@ const TEAMS = [
   {n:'Hoffenheim',file:'hoffenheim'},{n:'Koln',file:'koln'},{n:'Mainz',file:'mainz'},
   {n:'RB Leipzig',file:'rb-leipzig'},{n:'St Pauli',file:'st-pauli'},{n:'Stuttgart',file:'stuttgart'},
   {n:'Union Berlin',file:'union-berlin'},{n:'Werder Bremen',file:'werder-bremen'},{n:'Wolfsburg',file:'wolfsburg'},
-  // La Liga
   {n:'Alaves',file:'alaves'},{n:'Athletic Bilbao',file:'athletic-bilbao'},{n:'Atletico Madrid',file:'atletico-madrid'},
   {n:'Barcelona',file:'barcelona'},{n:'Betis',file:'betis'},{n:'Celta Vigo',file:'celta-vigo'},
   {n:'Elche',file:'elche'},{n:'Espanyol',file:'espanyol'},{n:'Getafe',file:'getafe'},
@@ -351,7 +423,6 @@ const TEAMS = [
   {n:'Osasuna',file:'osasuna'},{n:'Rayo Vallecano',file:'rayo-vallecano'},{n:'Real Madrid',file:'real-madrid'},
   {n:'Real Sociedad',file:'real-ociedad'},{n:'Real Oviedo',file:'real-oviedo'},
   {n:'Sevilla',file:'sevilla'},{n:'Valencia',file:'valencia'},{n:'Villarreal',file:'villarreal'},
-  // Premier League
   {n:'Arsenal',file:'arsenal'},{n:'Aston Villa',file:'aston-villa'},{n:'Bournemouth',file:'bournemouth'},
   {n:'Brentford',file:'brentford'},{n:'Brighton',file:'brighton'},{n:'Burnley',file:'burnley'},
   {n:'Chelsea',file:'chelsea'},{n:'Crystal Palace',file:'crystal-palace'},{n:'Everton',file:'everton'},
@@ -360,7 +431,6 @@ const TEAMS = [
   {n:'Newcastle',file:'newcastle'},{n:'Nottingham Forest',file:'nottingham'},{n:'Port Vale',file:'port-vale'},
   {n:'Southampton',file:'southampton'},{n:'Sunderland',file:'sunderland'},{n:'Tottenham',file:'tottenham'},
   {n:'West Ham',file:'west-ham'},{n:'Wolves',file:'wolves'},
-  // MLS
   {n:'Atlanta United',file:'atlanta-united'},{n:'Austin FC',file:'austin'},{n:'Charlotte FC',file:'charlotte'},
   {n:'Chicago Fire',file:'chicago-fire'},{n:'Cincinnati',file:'cincinnati'},{n:'Colorado Rapids',file:'colorado-rapids'},
   {n:'Columbus Crew',file:'columbus-crew'},{n:'Dallas',file:'dallas'},{n:'DC United',file:'dc-united'},
@@ -373,7 +443,6 @@ const TEAMS = [
   {n:'San Diego FC',file:'san-diego'},{n:'San Jose Earthquakes',file:'san-jose-earthquakes'},
   {n:'Seattle Sounders',file:'seattle-sounders'},{n:'Sporting Kansas City',file:'sporting-kansas-city'},
   {n:'St Louis City',file:'st-louis-city'},{n:'Toronto FC',file:'toronto'},{n:'Vancouver Whitecaps',file:'vancouver-whitecaps'},
-  // Ligue 1
   {n:'Angers',file:'angers'},{n:'Auxerre',file:'auxerre'},{n:'Brest',file:'brest'},
   {n:'Le Havre',file:'havre'},{n:'Lens',file:'lens'},{n:'Lille',file:'lille'},
   {n:'Lorient',file:'lorient'},{n:'Lyon',file:'lyon'},{n:'Metz',file:'metz'},
@@ -381,7 +450,6 @@ const TEAMS = [
   {n:'Olympique de Marseille',file:'olympique-de-marseille'},{n:'Marseille',file:'olympique-de-marseille'},
   {n:'Paris FC',file:'paris-fc'},{n:'Paris Saint-Germain',file:'paris-saint-germain'},{n:'PSG',file:'paris-saint-germain'},
   {n:'Rennes',file:'rennes'},{n:'Strasbourg',file:'strasbourg-alsace'},{n:'Toulouse',file:'toulouse'},
-  // Primeira Liga PT
   {n:'Arouca',file:'arouca'},{n:'Benfica',file:'benfica'},{n:'Boa Vista',file:'boa-vista'},
   {n:'Braga',file:'braga'},{n:'Casa Pia',file:'casa-pia'},{n:'Chaves',file:'chaves'},
   {n:'Estoril Praia',file:'estoril-praia'},{n:'Estrela Amadora',file:'estrela-amadora'},
@@ -389,15 +457,12 @@ const TEAMS = [
   {n:'Portimonense',file:'portimonense'},{n:'Porto',file:'porto'},{n:'Rio Ave',file:'rio-ave'},
   {n:'Santa Clara',file:'santa-clara'},{n:'Sporting CP',file:'sporting'},{n:'Vicente',file:'vicente'},
   {n:'Vitoria SC',file:'vitoria'},{n:'Vizela',file:'vizela'},
-  // Equador / Sul-América
   {n:'Aucas',file:'aucas'},{n:'Barcelona SC',file:'barcelona-sc'},{n:'Delfin SC',file:'delfin-sc'},
   {n:'Deportivo Cuenca',file:'deportivo-cuenca'},{n:'El Nacional',file:'el-nacional-ecuador'},
   {n:'Emelec',file:'emelec'},{n:'Independiente del Valle',file:'independiente-del-valle'},
   {n:'LDU Quito',file:'ldu-quito'},{n:'Libertad',file:'libertad'},{n:'Macara',file:'macara'},
   {n:'Manta FC',file:'manta'},{n:'Mushuc Runa',file:'mushuc-runa'},{n:'Orense',file:'orense'},
   {n:'Tecnico Universitario',file:'tecnico-universitario'},{n:'Universidad Catolica',file:'universidad-catolica'},
-  {n:'Vinotinto',file:'vinotinto'},
-  // Argentina
   {n:'Aldosivi',file:'aldosivi'},{n:'Argentinos Juniors',file:'argentinos-juniors'},
   {n:'Atletico Platense',file:'atletico-platense'},{n:'Atletico Tucuman',file:'atletico-tucuman'},
   {n:'Banfield',file:'banfield'},{n:'Barracas Central',file:'barracas-central'},
@@ -412,7 +477,6 @@ const TEAMS = [
   {n:'San Lorenzo',file:'san-lorenzo'},{n:'San Martin',file:'san-martin'},
   {n:'Sarmiento',file:'sarmiento'},{n:'Talleres',file:'talleres'},{n:'Tigre',file:'tigre'},
   {n:'Union',file:'union'},{n:'Velez Sarsfield',file:'velez-sarsfield'},
-  // Sul-Americanos Libertadores
   {n:'Always Ready',file:'always-ready'},{n:'Atletico Junior',file:'atletico-junior'},
   {n:'Bolivar',file:'bolivar'},{n:'Cerro Porteno',file:'cerro-porteno'},
   {n:'Coquimbo Unido',file:'coquimbo'},{n:'Corinthians',file:'corinthians'},
@@ -423,7 +487,6 @@ const TEAMS = [
   {n:'Penarol',file:'penarol'},{n:'Platense',file:'platense'},{n:'Rosario',file:'rosario'},
   {n:'Santa Fe',file:'santa-fe'},{n:'Sporting Cristal',file:'sporting-cristal'},
   {n:'Tolima',file:'tolima'},{n:'Universidad Central',file:'universidad-central'},{n:'Universitario',file:'universitario'},
-  // Brasileirao
   {n:'America MG',file:'america-mg'},{n:'Athletic Club',file:'athletic'},{n:'Athletico PR',file:'atletico-pr'},
   {n:'Atletico GO',file:'atletico-go'},{n:'Atletico MG',file:'atletico-mg'},{n:'Avai',file:'avai'},
   {n:'Bahia',file:'bahia'},{n:'Botafogo SP',file:'botafogo-sp'},{n:'Botafogo',file:'botafogo'},
@@ -435,8 +498,7 @@ const TEAMS = [
   {n:'Operario Ferroviario',file:'operario-ferroviario'},{n:'Ponte Preta',file:'ponte-preta'},
   {n:'Remo',file:'remo'},{n:'Santos',file:'santos'},{n:'Sao Bernardo',file:'sao-bernardo'},
   {n:'Sao Paulo',file:'sao-paulo'},{n:'Sport Recife',file:'sport-recife'},
-  {n:'Vasco',file:'vasco'},{n:'Vila Nova',file:'vila-nova'},{n:'Vitoria',file:'vitoria'},
-  // Selecoes
+  {n:'Vasco',file:'vasco'},{n:'Vila Nova',file:'vila-nova'},
   {n:'Alemanha',file:'alemanha'},{n:'Arabia Saudita',file:'arabia-saudita'},
   {n:'Argelia',file:'argelia'},{n:'Argentina',file:'argentina'},{n:'Australia',file:'australia'},
   {n:'Austria',file:'austria'},{n:'Belgica',file:'belgica'},{n:'Brasil',file:'brasil'},
@@ -454,184 +516,155 @@ const TEAMS = [
   {n:'Uruguai',file:'uruguai'},{n:'Uzbequistao',file:'uzbequistao'},
 ];
 
-function logo(file){ return `logos/${file}.png`; }
-
-function norm(s){
+// ══════════════════════════════════════════════
+// UTILITÁRIOS
+// ══════════════════════════════════════════════
+function norm(s) {
   return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[-_]/g,' ');
 }
 
-// ════════════════════════════════
-// SEARCH
-// ════════════════════════════════
-let selA=null, selB=null;
+function logoPath(file) { return `logos/${file}.png`; }
 
-function handleSearch(side){
-  const q = norm(document.getElementById(`search-${side}`).value);
-  const list = document.getElementById(`results-${side}`);
-  if(!q || q.length < 2){ list.classList.remove('open'); return; }
-  const found = TEAMS.filter(t => norm(t.n).includes(q)).slice(0,8);
-  if(!found.length){
-    list.innerHTML=`<div class="no-results">Nenhum time encontrado</div>`;
-    list.classList.add('open'); return;
-  }
-  list.innerHTML = found.map(t=>`
-    <div class="result-item" onclick="pick('${side}','${t.file}','${t.n.replace(/'/g,"\\'")}')">
-      <img src="${logo(t.file)}" onerror="this.style.opacity='0.15'" alt="${t.n}"/>
-      <span class="result-name">${t.n}</span>
-    </div>`).join('');
-  list.classList.add('open');
+function findLocalLogo(name) {
+  const q = norm(name);
+  const t = TEAMS.find(t => norm(t.n) === q || norm(t.n).includes(q) || q.includes(norm(t.n)));
+  return t ? logoPath(t.file) : null;
 }
 
-function pick(side,file,name){
-  const url = logo(file);
-  const slot = document.getElementById(`slot-${side}`);
-  slot.innerHTML=`<img src="${url}" onerror="this.style.opacity='0.15'" alt="${name}"/><div class="shield-team-name">${name}</div>`;
-  slot.classList.add('has-logo');
-  document.getElementById(`search-${side}`).value=name;
-  document.getElementById(`results-${side}`).classList.remove('open');
-  if(side==='a') selA={file,name,url}; else selB={file,name,url};
-  document.getElementById('btn-gen').disabled=!(selA&&selB);
-}
-
-function clearAll(){
-  selA=null; selB=null;
-  ['a','b'].forEach(s=>{
-    document.getElementById(`slot-${s}`).innerHTML='<div class="shield-slot-label">Selecione o time</div>';
-    document.getElementById(`slot-${s}`).classList.remove('has-logo');
-    document.getElementById(`search-${s}`).value='';
-    document.getElementById(`results-${s}`).classList.remove('open');
-  });
-  document.getElementById('btn-gen').disabled=true;
-}
-
-// ════════════════════════════════
-// GAMES — API-Football ao vivo
-// ════════════════════════════════
-const API_KEY = '17ce43bae0fb41017db59a595c23be9e';
-const API_BASE = 'https://v3.football.api-sports.io';
-
-// Ligas prioritárias em ordem de relevância
-const PRIORITY_LEAGUES = [2,3,39,140,71,78,135,61,73,13,11,9,253,848];
-// 2=Champions, 3=Europa League, 39=Premier, 140=La Liga, 71=Brasileirao,
-// 78=Bundesliga, 135=Serie A IT, 61=Ligue 1, 73=Sul-Americana,
-// 13=Libertadores, 11=Copa Libertadores, 9=Copa do Brasil,
-// 253=MLS, 848=UEFA Conference
-
-let LIVE_GAMES = [];
-let tickerIdx = 0;
-let tickerInterval = null;
+function isFinished(s) { return ['FT','AET','PEN','AWD','WO'].includes(s); }
+function isLive(s)     { return ['1H','2H','ET','P','HT','LIVE'].includes(s); }
 
 function formatTime(dateStr, status) {
-  if(status === 'FT' || status === 'AET' || status === 'PEN') return 'Encerrado';
-  if(status === 'HT') return 'Intervalo';
-  if(['1H','2H','ET','P'].includes(status)) return 'Ao vivo';
-  if(!dateStr) return '--:--';
-  const d = new Date(dateStr);
-  return d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit', timeZone:'America/Sao_Paulo'});
+  if (isFinished(status)) return 'Encerrado';
+  if (status === 'HT')    return 'Intervalo';
+  if (isLive(status))     return 'Ao vivo';
+  if (!dateStr)           return '--:--';
+  return new Date(dateStr).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit', timeZone:'America/Sao_Paulo' });
 }
 
-function isFinished(status) {
-  return ['FT','AET','PEN','AWD','WO'].includes(status);
+function shortLeague(name) {
+  return (name || '')
+    .replace('UEFA Champions League', 'Champions')
+    .replace('UEFA Europa League', 'Europa')
+    .replace('Premier League', 'Premier')
+    .replace(/Brasileir[aã]o S[eé]rie A/i, 'Série A')
+    .replace('Copa Libertadores', 'Libertadores')
+    .replace('Copa Sudamericana', 'Sul-Americana')
+    .replace('Copa Do Brasil', 'Copa BR')
+    .replace('Ligue 1', 'Ligue 1');
 }
 
-function isLive(status) {
-  return ['1H','2H','ET','P','HT','LIVE'].includes(status);
+// ══════════════════════════════════════════════
+// ESTADO
+// ══════════════════════════════════════════════
+let selA = null, selB = null;
+let LIVE_GAMES = [];
+let tickerIdx = 0, tickerInterval = null;
+
+// ══════════════════════════════════════════════
+// PORTAL
+// ══════════════════════════════════════════════
+setTimeout(() => {
+  document.getElementById('ph-left').classList.add('open');
+  document.getElementById('ph-right').classList.add('open');
+  setTimeout(() => {
+    const p = document.getElementById('portal');
+    p.classList.add('done');
+    setTimeout(() => p.remove(), 700);
+  }, 800);
+}, 1000);
+
+// ══════════════════════════════════════════════
+// SIDEBAR
+// ══════════════════════════════════════════════
+function openSidebar()  { document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebar-overlay').classList.add('open'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.remove('open'); }
+
+// ══════════════════════════════════════════════
+// TICKER
+// ══════════════════════════════════════════════
+function startTicker(games) {
+  if (tickerInterval) clearInterval(tickerInterval);
+  if (!games.length) return;
+  const pool = games.filter(g => !isFinished(g.status));
+  const src  = pool.length ? pool : games;
+  tickerIdx  = 0;
+  const tick = () => {
+    const g = src[tickerIdx % src.length];
+    const live = isLive(g.status);
+    document.getElementById('ticker-text').innerHTML =
+      `${live ? '<span style="color:#22d67a">●</span> ' : ''}<strong>${g.home}</strong> vs ${g.away} · ${formatTime(g.date, g.status)}`;
+    tickerIdx++;
+  };
+  tick();
+  tickerInterval = setInterval(tick, 4000);
 }
 
-function findLocalLogo(teamName) {
-  const n = norm(teamName);
-  const found = TEAMS.find(t => norm(t.n) === n || norm(t.n).includes(n) || n.includes(norm(t.n)));
-  return found ? `logos/${found.file}.png` : null;
-}
-
+// ══════════════════════════════════════════════
+// RENDER GAMES
+// ══════════════════════════════════════════════
 function renderGames(games) {
   const grid = document.getElementById('games-grid');
-  if(!games.length) {
-    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);font-family:var(--font-display);font-size:10px;letter-spacing:2px;padding:32px;">Nenhum jogo encontrado para hoje</div>`;
+  const liveCount = games.filter(g => isLive(g.status)).length;
+  document.getElementById('live-count').textContent = liveCount ? `${liveCount} ao vivo` : 'Hoje';
+
+  if (!games.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);font-family:var(--fd);font-size:10px;letter-spacing:2px;padding:32px;">Nenhum jogo encontrado</div>`;
     return;
   }
 
   grid.innerHTML = games.map((g, i) => {
-    const finished = isFinished(g.status);
-    const live = isLive(g.status);
-    const timeLabel = formatTime(g.date, g.status);
-    const score = (g.homeScore !== null && g.awayScore !== null) ? `${g.homeScore} - ${g.awayScore}` : '';
-    const localLogoA = findLocalLogo(g.home);
-    const localLogoB = findLocalLogo(g.away);
-    const logoA = localLogoA || g.logoA;
-    const logoB = localLogoB || g.logoB;
+    const fin   = isFinished(g.status);
+    const live  = isLive(g.status);
+    const time  = formatTime(g.date, g.status);
+    const score = (g.homeScore !== null && g.awayScore !== null) ? `${g.homeScore}–${g.awayScore}` : '';
+    const logoA = findLocalLogo(g.home) || g.logoA;
+    const logoB = findLocalLogo(g.away) || g.logoB;
 
-    return `
-    <div class="game-card${i===0&&!finished?' featured':''} ${finished?'finished':''}" style="${finished?'filter:grayscale(1);opacity:0.55;':''}">
-      <div class="game-comp">${g.league}</div>
+    return `<div class="game-card${i === 0 && !fin ? ' featured' : ''}${fin ? ' finished' : ''}" onclick="${fin ? '' : `useGame(${i})`}">
+      <div class="game-comp">${shortLeague(g.league)}</div>
       <div class="game-teams">
         <div class="team-row">
           <img class="team-logo-sm" src="${logoA}" onerror="this.style.display='none'" alt=""/>
           <span class="team-name">${g.home}</span>
         </div>
-        <div class="vs-small">${score || 'vs'}</div>
+        <div class="vs-badge">${score || 'vs'}</div>
         <div class="team-row">
           <img class="team-logo-sm" src="${logoB}" onerror="this.style.display='none'" alt=""/>
           <span class="team-name">${g.away}</span>
         </div>
       </div>
-      <div class="game-time">
-        ${live ? '<span class="live-badge">● AO VIVO</span>' : `<span class="game-time-val">${timeLabel}</span>`}
-        ${score && !live ? `<span style="color:var(--text-dim);margin-left:4px;">${score}</span>` : ''}
+      <div class="game-meta">
+        ${live  ? `<span class="live-badge">● AO VIVO</span>` : ''}
+        ${fin   ? `<span class="ended-tag">Encerrado ${score}</span>` : ''}
+        ${!live && !fin ? `<span class="game-time">${time}</span>` : ''}
       </div>
-      ${!finished ? `<button class="use-btn" onclick="useGame(${i})">Usar</button>` : `<div style="text-align:center;color:var(--text-muted);font-size:9px;letter-spacing:1px;font-family:var(--font-display);">Encerrado</div>`}
+      ${!fin ? `<button class="use-btn" onclick="event.stopPropagation();useGame(${i})">Usar</button>` : ''}
     </div>`;
   }).join('');
 }
 
-function startTicker(games) {
-  if(tickerInterval) clearInterval(tickerInterval);
-  if(!games.length) return;
-  tickerIdx = 0;
-  const active = games.filter(g => !isFinished(g.status));
-  const pool = active.length ? active : games;
-  function tick() {
-    const g = pool[tickerIdx % pool.length];
-    const live = isLive(g.status);
-    document.getElementById('ticker-text').innerHTML =
-      `${live ? '<span style="color:#22d67a">●</span> ' : ''}<strong>${g.home}</strong> vs ${g.away} &nbsp;·&nbsp; ${formatTime(g.date, g.status)}`;
-    tickerIdx++;
-  }
-  tick();
-  tickerInterval = setInterval(tick, 4000);
-}
-
+// ══════════════════════════════════════════════
+// FETCH GAMES
+// ══════════════════════════════════════════════
 async function fetchGames() {
-  const grid = document.getElementById('games-grid');
-  grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--text-dim);font-family:var(--font-display);font-size:10px;letter-spacing:3px;padding:32px;animation:pulse 1s infinite;">Carregando jogos...</div>`;
-
   try {
-    const res = await fetch(`/api/fixtures`);
+    const res  = await fetch('/api/fixtures');
     const data = await res.json();
 
-    console.log('[ICE] API response:', data);
-
-    if(!data.response || !data.response.length) {
-      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);font-family:var(--font-display);font-size:10px;letter-spacing:2px;padding:32px;">Nenhum jogo encontrado para hoje</div>`;
+    if (!data.response || !data.response.length) {
+      renderGames([]);
       return;
     }
 
     LIVE_GAMES = data.response.map(f => ({
-      home: f.teams.home.name,
-      away: f.teams.away.name,
-      logoA: f.teams.home.logo,
-      logoB: f.teams.away.logo,
-      league: (f.league.name||'')
-        .replace('UEFA Champions League','Champions')
-        .replace('Copa Libertadores','Libertadores')
-        .replace('Premier League','Premier')
-        .replace(/Brasileir[aã]o S[eé]rie A/,'Série A')
-        .replace('Bundesliga','Bundesliga')
-        .replace('Ligue 1','Ligue 1')
-        .replace('Copa Sudamericana','Sul-Americana')
-        .replace('Copa Do Brasil','Copa BR'),
-      date: f.fixture.date,
-      status: f.fixture.status.short,
+      home:      f.teams.home.name,
+      away:      f.teams.away.name,
+      logoA:     f.teams.home.logo,
+      logoB:     f.teams.away.logo,
+      league:    f.league.name,
+      date:      f.fixture.date,
+      status:    f.fixture.status.short,
       homeScore: f.goals.home,
       awayScore: f.goals.away,
     }));
@@ -639,141 +672,163 @@ async function fetchGames() {
     renderGames(LIVE_GAMES);
     startTicker(LIVE_GAMES);
 
-    // Atualiza a cada 30 minutos (alinhado com cache do servidor)
-    setTimeout(() => fetchGames(), 30 * 60 * 1000);
+    // Reagenda para 30 minutos
+    setTimeout(fetchGames, 30 * 60 * 1000);
 
-  } catch(err) {
-    console.error('[ICE] Erro:', err);
-    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);font-family:var(--font-display);font-size:10px;letter-spacing:2px;padding:32px;">Erro ao carregar jogos. Tente recarregar.</div>`;
+  } catch (err) {
+    console.error('[ICE] Erro ao buscar jogos:', err);
+    document.getElementById('games-grid').innerHTML =
+      `<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);font-family:var(--fd);font-size:10px;letter-spacing:2px;padding:32px;">Erro ao carregar. Tente recarregar a página.</div>`;
   }
 }
 
 function useGame(i) {
   const g = LIVE_GAMES[i];
-  if(!g) return;
+  if (!g) return;
   const localA = findLocalLogo(g.home);
   const localB = findLocalLogo(g.away);
-
-  const fileA = localA ? localA.replace('logos/','').replace('.png','') : null;
-  const fileB = localB ? localB.replace('logos/','').replace('.png','') : null;
-
-  if(fileA) pick('a', fileA, g.home);
-  else pickByUrl('a', g.logoA, g.home);
-
-  if(fileB) pick('b', fileB, g.away);
-  else pickByUrl('b', g.logoB, g.away);
-
+  if (localA) pick('a', localA.replace('logos/','').replace('.png',''), g.home);
+  else pickUrl('a', g.logoA, g.home);
+  if (localB) pick('b', localB.replace('logos/','').replace('.png',''), g.away);
+  else pickUrl('b', g.logoB, g.away);
   showToast('Jogo selecionado!');
-  document.querySelector('.generator').scrollIntoView({behavior:'smooth', block:'start'});
+  document.querySelector('.generator').scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
-function pickByUrl(side, url, name) {
+// ══════════════════════════════════════════════
+// SEARCH
+// ══════════════════════════════════════════════
+function handleSearch(side) {
+  const q    = norm(document.getElementById(`search-${side}`).value);
+  const list = document.getElementById(`results-${side}`);
+  if (!q || q.length < 2) { list.classList.remove('open'); return; }
+
+  const found = TEAMS.filter(t => norm(t.n).includes(q)).slice(0, 8);
+  if (!found.length) {
+    list.innerHTML = `<div class="no-results">Nenhum time encontrado</div>`;
+    list.classList.add('open');
+    return;
+  }
+
+  list.innerHTML = found.map(t =>
+    `<div class="result-item" onclick="pick('${side}','${t.file}','${t.n.replace(/'/g,"\\'")}')">
+      <img src="${logoPath(t.file)}" onerror="this.style.opacity='.15'" alt="${t.n}"/>
+      <span class="result-name">${t.n}</span>
+    </div>`
+  ).join('');
+  list.classList.add('open');
+}
+
+function pick(side, file, name) {
+  const url  = logoPath(file);
   const slot = document.getElementById(`slot-${side}`);
-  slot.innerHTML = `<img src="${url}" onerror="this.style.opacity='0.15'" alt="${name}"/><div class="shield-team-name">${name}</div>`;
+  slot.innerHTML = `<img src="${url}" onerror="this.style.opacity='.15'" alt="${name}"/><div class="shield-team-name">${name}</div>`;
   slot.classList.add('has-logo');
   document.getElementById(`search-${side}`).value = name;
   document.getElementById(`results-${side}`).classList.remove('open');
-  if(side==='a') selA={file:null, name, url};
-  else selB={file:null, name, url};
+  if (side === 'a') selA = { url, name }; else selB = { url, name };
   document.getElementById('btn-gen').disabled = !(selA && selB);
 }
 
-// Inicia
-fetchGames();
-
-// ════════════════════════════════
-// IMAGE 512x368
-// ════════════════════════════════
-function generateImage(){
-  if(!selA||!selB) return;
-  const cv=document.getElementById('preview-canvas');
-  const ctx=cv.getContext('2d');
-  cv.width=512; cv.height=368;
-  ctx.fillStyle='#161e3f';
-  ctx.fillRect(0,0,512,368);
-
-  const iA=new Image(); iA.crossOrigin='anonymous';
-  const iB=new Image(); iB.crossOrigin='anonymous';
-  let done=0;
-  function tryDraw(){ if(++done<2) return; draw(ctx,iA,iB); document.getElementById('preview-modal').classList.add('open'); }
-  iA.onload=tryDraw; iA.onerror=()=>{iA._e=true;tryDraw();};
-  iB.onload=tryDraw; iB.onerror=()=>{iB._e=true;tryDraw();};
-  iA.src=selA.url; iB.src=selB.url;
+function pickUrl(side, url, name) {
+  const slot = document.getElementById(`slot-${side}`);
+  slot.innerHTML = `<img src="${url}" onerror="this.style.opacity='.15'" alt="${name}"/><div class="shield-team-name">${name}</div>`;
+  slot.classList.add('has-logo');
+  document.getElementById(`search-${side}`).value = name;
+  document.getElementById(`results-${side}`).classList.remove('open');
+  if (side === 'a') selA = { url, name }; else selB = { url, name };
+  document.getElementById('btn-gen').disabled = !(selA && selB);
 }
 
-function drawShield(ctx, img, x, y, maxSize) {
+function clearAll() {
+  selA = null; selB = null;
+  ['a','b'].forEach(s => {
+    document.getElementById(`slot-${s}`).innerHTML = '<div class="shield-slot-label">Selecione o time</div>';
+    document.getElementById(`slot-${s}`).classList.remove('has-logo');
+    document.getElementById(`search-${s}`).value = '';
+    document.getElementById(`results-${s}`).classList.remove('open');
+  });
+  document.getElementById('btn-gen').disabled = true;
+}
+
+// ══════════════════════════════════════════════
+// GERAR IMAGEM 512×368
+// ══════════════════════════════════════════════
+function generateImage() {
+  if (!selA || !selB) return;
+  const cv  = document.getElementById('preview-canvas');
+  const ctx = cv.getContext('2d');
+  cv.width = 512; cv.height = 368;
+
+  // Fundo
+  ctx.fillStyle = '#161e3f';
+  ctx.fillRect(0, 0, 512, 368);
+
+  const imgA = new Image(); imgA.crossOrigin = 'anonymous';
+  const imgB = new Image(); imgB.crossOrigin = 'anonymous';
+  let loaded = 0;
+
+  const tryDraw = () => {
+    if (++loaded < 2) return;
+    drawShield(ctx, imgA, 302, 98, 70);
+    // VS
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 13px Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('vs', 386, 133);
+    drawShield(ctx, imgB, 404, 98, 70);
+    document.getElementById('preview-modal').classList.add('open');
+  };
+
+  imgA.onload = tryDraw; imgA.onerror = () => { imgA._e = true; tryDraw(); };
+  imgB.onload = tryDraw; imgB.onerror = () => { imgB._e = true; tryDraw(); };
+  imgA.src = selA.url;
+  imgB.src = selB.url;
+}
+
+function drawShield(ctx, img, x, y, size) {
   if (img._e) return;
-  const ratio = img.naturalWidth / img.naturalHeight;
-  let w, h;
-  if (ratio >= 1) { w = maxSize; h = maxSize / ratio; }
-  else            { h = maxSize; w = maxSize * ratio; }
-  // centraliza dentro do box de 70x70
-  const dx = x + (maxSize - w) / 2;
-  const dy = y + (maxSize - h) / 2;
-  ctx.drawImage(img, dx, dy, w, h);
+  const r = img.naturalWidth / img.naturalHeight;
+  const w = r >= 1 ? size : size * r;
+  const h = r >= 1 ? size / r : size;
+  ctx.drawImage(img, x + (size - w) / 2, y + (size - h) / 2, w, h);
 }
 
-function draw(ctx, iA, iB){
-  const S=70;
-  // Escudo 1 — Time da Casa: X:302 Y:98
-  drawShield(ctx, iA, 302, 98, S);
-  // VS — X:386 Y:133 (centro vertical do escudo)
-  ctx.fillStyle='#ffffff';
-  ctx.font='bold 13px Arial,sans-serif';
-  ctx.textAlign='center';
-  ctx.textBaseline='middle';
-  ctx.fillText('vs', 386, 133);
-  // Escudo 2 — Time Visitante: X:404 Y:98
-  drawShield(ctx, iB, 404, 98, S);
-}
-
-function downloadImage(){
-  const cv=document.getElementById('preview-canvas');
-  const a=document.createElement('a');
-  const nA=(selA?.name||'TimeA').replace(/[^a-zA-Z0-9]/g,'_');
-  const nB=(selB?.name||'TimeB').replace(/[^a-zA-Z0-9]/g,'_');
-  a.download=`${nA}_vs_${nB}.png`;
-  a.href=cv.toDataURL('image/png');
+function downloadImage() {
+  const cv = document.getElementById('preview-canvas');
+  const a  = document.createElement('a');
+  const nA = (selA?.name || 'TimeA').replace(/[^a-zA-Z0-9]/g, '_');
+  const nB = (selB?.name || 'TimeB').replace(/[^a-zA-Z0-9]/g, '_');
+  a.download = `${nA}_vs_${nB}.png`;
+  a.href = cv.toDataURL('image/png');
   a.click();
   showToast('Download iniciado!');
 }
 
-function closeModal(){ document.getElementById('preview-modal').classList.remove('open'); }
+function closeModal() { document.getElementById('preview-modal').classList.remove('open'); }
 
-// ════════════════════════════════
-// PORTAL
-// ════════════════════════════════
-setTimeout(()=>{
-  document.getElementById('ph-left').classList.add('open');
-  document.getElementById('ph-right').classList.add('open');
-  setTimeout(()=>{
-    document.getElementById('portal').classList.add('done');
-    setTimeout(()=>document.getElementById('portal').style.display='none',700);
-  },800);
-},1000);
-
-// ════════════════════════════════
-// SIDEBAR
-// ════════════════════════════════
-function openSidebar(){ document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebar-overlay').classList.add('open'); }
-function closeSidebar(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.remove('open'); }
-
-// ════════════════════════════════
+// ══════════════════════════════════════════════
 // TOAST
-// ════════════════════════════════
-function showToast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2500);
+// ══════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-document.addEventListener('click',e=>{
-  ['a','b'].forEach(s=>{
-    if(!document.getElementById(`search-${s}`).contains(e.target)&&
-       !document.getElementById(`results-${s}`).contains(e.target))
-      document.getElementById(`results-${s}`).classList.remove('open');
+// Fecha resultados ao clicar fora
+document.addEventListener('click', e => {
+  ['a','b'].forEach(s => {
+    const inp = document.getElementById(`search-${s}`);
+    const res = document.getElementById(`results-${s}`);
+    if (!inp.contains(e.target) && !res.contains(e.target)) res.classList.remove('open');
   });
 });
+
+// Inicia
+fetchGames();
 </script>
 </body>
 </html>
