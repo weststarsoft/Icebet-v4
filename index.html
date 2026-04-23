@@ -155,7 +155,7 @@ html, body { width: 100%; min-height: 100vh; background: var(--bg); color: var(-
 .modal-box { background: var(--bg3); border: 1px solid var(--border-ice); border-radius: 16px; padding: 32px; display: flex; flex-direction: column; gap: 20px; max-width: 600px; width: 90%; position: relative; }
 .modal-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--ice), transparent); border-radius: 16px 16px 0 0; }
 .modal-title { color: var(--text); font-family: var(--font-display); font-size: 11px; letter-spacing: 3px; text-transform: uppercase; }
-.preview-canvas-wrap { background: white; border-radius: 8px; overflow: hidden; }
+.preview-canvas-wrap { background: #161e3f; border-radius: 8px; overflow: hidden; }
 #preview-canvas { display: block; width: 100%; height: auto; }
 .dim-label { color: var(--text-muted); font-size: 10px; letter-spacing: 1px; font-family: var(--font-body); text-align: center; }
 .modal-actions { display: flex; gap: 10px; }
@@ -312,7 +312,7 @@ html, body { width: 100%; min-height: 100vh; background: var(--bg); color: var(-
     <div class="preview-canvas-wrap">
       <canvas id="preview-canvas" width="512" height="368"></canvas>
     </div>
-    <div class="dim-label">512 × 368 px · Fundo branco · Pronta para os cards da Ice.Bet</div>
+    <div class="dim-label">512 × 368 px · Fundo #161e3f · Pronta para os cards da Ice.Bet</div>
     <div class="modal-actions">
       <button class="btn-close-modal" onclick="closeModal()">Fechar</button>
       <button class="btn-download" onclick="downloadImage()">⬇ Baixar PNG</button>
